@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: guessword-2
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/webguessword-2
+    username: postgres
+    password: 571564
+
+server:
+  contextPath: /api
+
+liquibase.change-log: classpath:db/changelog.xml
