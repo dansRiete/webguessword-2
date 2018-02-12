@@ -1,6 +1,5 @@
 package com.oleksii.kuzko.dao;
 
-import com.oleksii.kuzko.model.Language;
 import com.oleksii.kuzko.model.Phrase;
 import com.oleksii.kuzko.model.Word;
 import org.springframework.dao.DataAccessException;
@@ -78,24 +77,19 @@ public class PhraseDao {
                     phrase = new Phrase();
                     phrase.setId(rs.getString(PHRASE_ID));
                     phrase.setLabel(rs.getString(PHRASE_LABEL));
-                    phrase.setCreationDate(DateTimeUtils.toZonedDateTime(rs.getTimestamp(PHRASE_CREATION_DATE)));
-                    phrase.setLastAccessDate(DateTimeUtils.toZonedDateTime(rs.getTimestamp(PHRASE_LAST_ACCESS_DATE)));
+                    phrase.setCreationDate(DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_CREATION_DATE)));
+                    phrase.setLastAccessDate(DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_LAST_ACCESS_DATE)));
                     phrase.setProbabilityFactor(rs.getFloat(PHRASE_PROBABILITY_FACTOR));
                     phrase.setProbabilityMultiplier(rs.getFloat(PHRASE_PROBABILITY_MULTIPLIER));
                     phrases.add(phrase);
                 }
                 String word = rs.getString(WORDS_WORD);
                 if (word != null) {
-                    Language language = new Language();
-                    language.setCode(rs.getString(WORDS_WORD_LANGUAGE_CODE_ALIAS));
-                    language.setName(rs.getString(WORDS_WORD_LANGUAGE_NAME_ALIAS));
                     Word word1 = new Word();
                     word1.setWord(word);
-                    word1.setLanguage(language);
+                    word1.setLanguage(rs.getString(WORDS_WORD_LANGUAGE_CODE_ALIAS));
                     word1.setTranscription(rs.getString(WORDS_WORD_TRANSCRIPTION_ALIAS));
-                    //Put an empty ArrayList if absent
-                    phrase.getWords().computeIfAbsent(language, k -> new ArrayList<>());
-                    phrase.getWords().get(language).add(word1);
+                    phrase.getWords().add(word1);
                 }
             }
             return phrases;

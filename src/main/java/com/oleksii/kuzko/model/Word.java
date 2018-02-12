@@ -10,7 +10,7 @@ import java.util.Objects;
 public class Word {
 
     private String word;
-    private Language language;
+    private String language;
     private String transcription;
 
     public String getWord() {
@@ -21,11 +21,11 @@ public class Word {
         this.word = word;
     }
 
-    public Language getLanguage() {
+    public String getLanguage() {
         return language;
     }
 
-    public void setLanguage(Language language) {
+    public void setLanguage(String language) {
         this.language = language;
     }
 

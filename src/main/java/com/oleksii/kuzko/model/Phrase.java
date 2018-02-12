@@ -1,11 +1,11 @@
 package com.oleksii.kuzko.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.common.base.MoreObjects;
 
-import java.time.ZonedDateTime;
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,9 +15,9 @@ public class Phrase {
 
     private String id;
     private String label;
-    private Map<Language, List<Word>> words = new HashMap<>();
-    private ZonedDateTime creationDate;
-    private ZonedDateTime lastAccessDate;
+    private List<Word> words = new ArrayList<>();
+    private LocalDateTime creationDate;
+    private LocalDateTime lastAccessDate;
     private double probabilityFactor;
     private double probabilityMultiplier;
 
@@ -37,27 +37,29 @@ public class Phrase {
         this.label = label;
     }
 
-    public Map<Language, List<Word>> getWords() {
+    public List<Word> getWords() {
         return words;
     }
 
-    public void setWords(Map<Language, List<Word>> words) {
+    public void setWords(List<Word> words) {
         this.words = words;
     }
 
-    public ZonedDateTime getCreationDate() {
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(ZonedDateTime creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
-    public ZonedDateTime getLastAccessDate() {
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    public LocalDateTime getLastAccessDate() {
         return lastAccessDate;
     }
 
-    public void setLastAccessDate(ZonedDateTime lastAccessDate) {
+    public void setLastAccessDate(LocalDateTime lastAccessDate) {
         this.lastAccessDate = lastAccessDate;
     }
 

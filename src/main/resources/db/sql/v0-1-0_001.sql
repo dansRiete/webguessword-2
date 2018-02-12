@@ -15,7 +15,7 @@ CREATE UNIQUE INDEX users_email_uindex
 
 CREATE TABLE phrases
 (
-  id                     SERIAL           NOT NULL
+  id                     TEXT             NOT NULL
     CONSTRAINT phrases_pkey
     PRIMARY KEY,
   user_login             TEXT             NOT NULL
@@ -42,7 +42,7 @@ CREATE TABLE languages
   language_name TEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX languages_code_uindex
+CREATE UNIQUE INDEX langulages_code_uindex
   ON languages (code);
 
 ALTER TABLE phrases
@@ -69,7 +69,7 @@ CREATE UNIQUE INDEX words_word_uindex
 
 CREATE TABLE phrases_words
 (
-  phrase_word_id SERIAL    NOT NULL
+  phrase_word_id TEXT      NOT NULL
     CONSTRAINT phrases_words_pkey
     PRIMARY KEY,
   phrase_id      TEXT      NOT NULL
