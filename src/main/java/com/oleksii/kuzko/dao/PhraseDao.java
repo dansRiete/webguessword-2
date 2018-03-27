@@ -13,10 +13,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -70,7 +68,10 @@ public class PhraseDao {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final NamedParameterJdbcTemplate mysqlNamedParameterJdbcTemplate;
 
-    public PhraseDao(NamedParameterJdbcTemplate namedParameterJdbcTemplate, @Qualifier("mysqlDatasource") DataSource mysqlDatasource) {
+    public PhraseDao(
+            NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+            @Qualifier("mysqlDatasource") DataSource mysqlDatasource
+    ) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.mysqlNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(mysqlDatasource);
     }
@@ -87,17 +88,21 @@ public class PhraseDao {
 
         @Override
         public List<Phrase> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            //todo not to complete
             List<Phrase> phrases = new ArrayList<>();
+            List<Word> words = new ArrayList<>();
             Phrase phrase = null;
             while (rs.next()) {
                 String phraseId = rs.getString(PHRASE_ID);
                 if (phrase == null || !phrase.getId().equals(phraseId)) {
-                    phrase = new Phrase(rs.getString(PHRASE_ID), DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_CREATION_DATE)));
-                    phrase.setLabel(rs.getString(PHRASE_LABEL));
-                    phrase.setLastAccessDate(DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_LAST_ACCESS_DATE)));
-                    phrase.setProbabilityFactor(rs.getFloat(PHRASE_PROBABILITY_FACTOR));
-                    phrase.setProbabilityMultiplier(rs.getFloat(PHRASE_PROBABILITY_MULTIPLIER));
-                    phrases.add(phrase);
+                    String label = rs.getString(PHRASE_LABEL);
+                    LocalDateTime lastAccessDate = DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_LAST_ACCESS_DATE));
+                    double probabilityFactor = rs.getFloat(PHRASE_PROBABILITY_FACTOR);
+                    double probabilityMultiplier = rs.getFloat(PHRASE_PROBABILITY_MULTIPLIER);
+                    phrases.add(new Phrase(
+                            rs.getString(PHRASE_ID), DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_CREATION_DATE)),
+                            probabilityFactor, probabilityMultiplier, label, words, lastAccessDate
+                    ));
                 }
                 if (rs.getString(WORDS_WORD) != null) {
                     Word word = new Word(
@@ -109,6 +114,7 @@ public class PhraseDao {
                 }
             }
             return phrases;
+
         }
     }
 
@@ -117,16 +123,24 @@ public class PhraseDao {
 
         @Override
         public List<Phrase> extractData(ResultSet rs) throws SQLException, DataAccessException {
+
             List<Phrase> phrases = new ArrayList<>();
-            Phrase phrase;
             while (rs.next()) {
 
                 final String forWord = rs.getString("for_word");
                 final String natWord = rs.getString("nat_word");
                 final String transcription = rs.getString("transcr");
-                final String label = rs.getString("label") != null && rs.getString("label").equals("") ? null : rs.getString("label");
+                final String label = rs.getString("label") != null && rs.getString("label").equals("")
+                        ? null : rs.getString("label");
+
+                LocalDateTime lastAccessDate = DateTimeUtils.toLocalDateTime(rs.getTimestamp("last_accs_date"));
+                double probabilityFactor = new BigDecimal(rs.getFloat("prob_factor"))
+                        .setScale(2, RoundingMode.UP).doubleValue();
+                double probabilityMultiplier = new BigDecimal(rs.getFloat("rate"))
+                        .setScale(2, RoundingMode.UP).doubleValue();
 
                 if (forWord.contains("/") && natWord.contains("/")) {
+
                     final String[] forWords = forWord.split("/");
                     final String[] natWords = natWord.split("/");
                     if (forWords.length != natWords.length) {
@@ -134,51 +148,46 @@ public class PhraseDao {
                         continue;
                     }
                     for (int i = 0; i < forWords.length; i++) {
-                        phrase = new Phrase(
-                                UUID.randomUUID().toString(),
-                                DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date"))
+                        Word foreignWord = new Word(forWords[i], "en", transcription);
+                        Word nativeWord = new Word(natWords[i], "ru", null);
+                        List<Word> words = Collections.unmodifiableList(Arrays.asList(foreignWord, nativeWord));
+                        phrases.add(
+                                new Phrase(
+                                        UUID.randomUUID().toString(),
+                                        DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
+                                        probabilityFactor, probabilityMultiplier, label, words, lastAccessDate
+                                )
                         );
-
-                        phrase.setLabel(label);
-                        phrase.setLastAccessDate(DateTimeUtils.toLocalDateTime(rs.getTimestamp("last_accs_date")));
-                        phrase.setProbabilityFactor(new BigDecimal(rs.getFloat("prob_factor")).setScale(2, RoundingMode.UP).doubleValue());
-                        phrase.setProbabilityMultiplier(new BigDecimal(rs.getFloat("rate")).setScale(2, RoundingMode.UP).doubleValue());
-                        phrase.getWords().add(new Word(forWords[i], "en", transcription));
-                        phrase.getWords().add(new Word(natWords[i], "ru", null));
-                        phrases.add(phrase);
                     }
 
                 } else {
 
-                    phrase = new Phrase(
-                            UUID.randomUUID().toString(),
-                            DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date"))
-                    );
+                    List<Word> words = new ArrayList<>();
 
-                    phrase.setLabel(label);
-                    phrase.setLastAccessDate(DateTimeUtils.toLocalDateTime(rs.getTimestamp("last_accs_date")));
-                    phrase.setProbabilityFactor(new BigDecimal(rs.getFloat("prob_factor")).setScale(2, RoundingMode.UP).doubleValue());
-                    phrase.setProbabilityMultiplier(new BigDecimal(rs.getFloat("rate")).setScale(2, RoundingMode.UP).doubleValue());
 
                     if (forWord.contains("/")) {
                         List<Word> engWords = Arrays.stream(forWord.split("/"))
                                 .map(wordLiteral -> new Word(wordLiteral, "en", transcription))
                                 .collect(Collectors.toList());
-                        phrase.getWords().addAll(engWords);
+                        words.addAll(engWords);
                     } else {
-                        phrase.getWords().add(new Word(forWord, "en", transcription));
+                        words.add(new Word(forWord, "en", transcription));
                     }
 
                     if (natWord.contains("/")) {
                         List<Word> natWords = Arrays.stream(natWord.split("/"))
                                 .map(wordLiteral -> new Word(wordLiteral, "ru", null))
                                 .collect(Collectors.toList());
-                        phrase.getWords().addAll(natWords);
+                        words.addAll(natWords);
                     } else {
-                        phrase.getWords().add(new Word(natWord, "ru", null));
+                        words.add(new Word(natWord, "ru", null));
                     }
 
-                    phrases.add(phrase);
+                    phrases.add(new Phrase(
+                            UUID.randomUUID().toString(),
+                            DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
+                            probabilityFactor, probabilityMultiplier, label, Collections.unmodifiableList(words), lastAccessDate
+                    ));
                 }
 
 

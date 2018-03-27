@@ -4,27 +4,32 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.common.base.MoreObjects;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author The Weather Company, An IBM Business
  */
-public class Phrase {
+public class Phrase extends BaseModel{
 
-    private final String id;
     private final LocalDateTime creationDate;
-    private double probabilityFactor;
-    private double probabilityMultiplier;
+    private final Double probabilityFactor;
+    private final Double probabilityMultiplier;
+    private final String label;
+    private final List<Word> words;
+    private final LocalDateTime lastAccessDate;
 
-    private String label;
-    private List<Word> words = new ArrayList<>();
-    private LocalDateTime lastAccessDate;
-
-    public Phrase(String id, LocalDateTime creationDate) {
-        this.id = id;
+    public Phrase(
+            String id, LocalDateTime creationDate, Double probabilityFactor,
+            Double probabilityMultiplier, String label, List<Word> words, LocalDateTime lastAccessDate
+    ) {
+        super(id);
+        this.probabilityFactor = probabilityFactor;
+        this.probabilityMultiplier = probabilityMultiplier;
         this.creationDate = creationDate;
+        this.label = label;
+        this.words = words;
+        this.lastAccessDate = lastAccessDate;
     }
 
     public String getId() {
@@ -55,26 +60,6 @@ public class Phrase {
 
     public double getProbabilityMultiplier() {
         return probabilityMultiplier;
-    }
-
-    public void setProbabilityFactor(double probabilityFactor) {
-        this.probabilityFactor = probabilityFactor;
-    }
-
-    public void setProbabilityMultiplier(double probabilityMultiplier) {
-        this.probabilityMultiplier = probabilityMultiplier;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public void setWords(List<Word> words) {
-        this.words = words;
-    }
-
-    public void setLastAccessDate(LocalDateTime lastAccessDate) {
-        this.lastAccessDate = lastAccessDate;
     }
 
     @Override
