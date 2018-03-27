@@ -38,4 +38,9 @@ public class PhraseController {
         return ResponseEntity.ok(phraseService.getAll());
     }
 
+    @GetMapping(value = "/allMysql", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Phrase>> getAllMysql() {
+        return ResponseEntity.ok(phraseService.getAllMysql());
+    }
+
 }

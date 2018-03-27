@@ -1,13 +1,20 @@
 spring:
   application:
     name: guessword-2
-  datasource:
+
+postgres.datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/webguessword-2
     username: postgres
     password: 571564
 
+mysql.datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/guessword
+    username: root
+    password: root
+
 server:
   contextPath: /api
 
-liquibase.change-log: classpath:db/changelog.xml
+#liquibase.change-log: classpath:db/changelog.xml

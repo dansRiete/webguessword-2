@@ -13,36 +13,30 @@ import java.util.Objects;
  */
 public class Phrase {
 
-    private String id;
-    private String label;
-    private List<Word> words = new ArrayList<>();
-    private LocalDateTime creationDate;
-    private LocalDateTime lastAccessDate;
+    private final String id;
+    private final LocalDateTime creationDate;
     private double probabilityFactor;
     private double probabilityMultiplier;
 
-    public String getId() {
-        return id;
+    private String label;
+    private List<Word> words = new ArrayList<>();
+    private LocalDateTime lastAccessDate;
+
+    public Phrase(String id, LocalDateTime creationDate) {
+        this.id = id;
+        this.creationDate = creationDate;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getId() {
+        return id;
     }
 
     public String getLabel() {
         return label;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
     public List<Word> getWords() {
         return words;
-    }
-
-    public void setWords(List<Word> words) {
-        this.words = words;
     }
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
@@ -50,33 +44,37 @@ public class Phrase {
         return creationDate;
     }
 
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
-    }
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     public LocalDateTime getLastAccessDate() {
         return lastAccessDate;
-    }
-
-    public void setLastAccessDate(LocalDateTime lastAccessDate) {
-        this.lastAccessDate = lastAccessDate;
     }
 
     public double getProbabilityFactor() {
         return probabilityFactor;
     }
 
-    public void setProbabilityFactor(double probabilityFactor) {
-        this.probabilityFactor = probabilityFactor;
-    }
-
     public double getProbabilityMultiplier() {
         return probabilityMultiplier;
     }
 
+    public void setProbabilityFactor(double probabilityFactor) {
+        this.probabilityFactor = probabilityFactor;
+    }
+
     public void setProbabilityMultiplier(double probabilityMultiplier) {
         this.probabilityMultiplier = probabilityMultiplier;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public void setWords(List<Word> words) {
+        this.words = words;
+    }
+
+    public void setLastAccessDate(LocalDateTime lastAccessDate) {
+        this.lastAccessDate = lastAccessDate;
     }
 
     @Override

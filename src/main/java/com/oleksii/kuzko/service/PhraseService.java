@@ -25,4 +25,8 @@ public class PhraseService {
     public List<Phrase> getAll() {
         return phraseDao.getAll();
     }
+
+    public List<Phrase> getAllMysql() {
+        return phraseDao.getAllMysql();
+    }
 }

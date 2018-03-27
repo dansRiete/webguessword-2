@@ -38,6 +38,10 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc', version: '1.5.9.RELEASE'
     compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.4'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+    compile group: 'log4j', name: 'log4j', version: '1.2.17'
+
+
 
 
 

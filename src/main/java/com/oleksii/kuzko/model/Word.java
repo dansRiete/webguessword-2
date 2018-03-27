@@ -2,39 +2,40 @@ package com.oleksii.kuzko.model;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author The Weather Company, An IBM Business
  */
 public class Word {
 
-    private String word;
-    private String language;
-    private String transcription;
+    private final String word;
+    private final String language;
+    private final String transcription;
+
+    public Word(String word, String language, String transcription) {
+        this.word = normalizeWord(word);
+        this.language = language;
+        this.transcription = transcription;
+    }
 
     public String getWord() {
         return word;
-    }
-
-    public void setWord(String word) {
-        this.word = word;
     }
 
     public String getLanguage() {
         return language;
     }
 
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
     public String getTranscription() {
         return transcription;
     }
 
-    public void setTranscription(String transcription) {
-        this.transcription = transcription;
+    private String normalizeWord(String word) {
+        return Arrays.stream(word.split(" "))
+                .map(word1 -> word1.equals("I") ? "I" : word1.toLowerCase()).collect(Collectors.joining(" "));
     }
 
     @Override
