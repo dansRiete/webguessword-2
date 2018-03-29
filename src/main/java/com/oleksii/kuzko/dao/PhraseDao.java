@@ -1,6 +1,7 @@
 package com.oleksii.kuzko.dao;
 
 import com.oleksii.kuzko.model.Phrase;
+import com.oleksii.kuzko.model.User;
 import com.oleksii.kuzko.model.Word;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,7 +40,7 @@ public class PhraseDao {
     private final static String WORDS_WORD_TRANSCRIPTION_ALIAS = "word_transcription";
 
     private final static PostgresqlPhraseMapper POSTGRESQL_PHRASE_MAPPER = new PostgresqlPhraseMapper();
-    private final static MysqlPhraseMapper MYSQL_PHRASE_MAPPER = new MysqlPhraseMapper();
+//    private final static MysqlPhraseMapper MYSQL_PHRASE_MAPPER = new MysqlPhraseMapper();
     private final static Logger LOGGER = Logger.getLogger(PhraseDao.class);
 
     private final static String SELECT_ALL_POSTGRES = "SELECT\n" +
@@ -63,7 +64,11 @@ public class PhraseDao {
             "  WHERE phrases.is_active = TRUE AND phrases_words.is_active = TRUE\n" +
             "  ORDER BY user_login, id";
 
-    private final static String SELECT_ALL_MYSQL = "SELECT * FROM words";
+    private final static String SELECT_ALL_MYSQL =
+            "SELECT * FROM guessword.words INNER JOIN guessword.users " +
+                    "ON user_id = guessword.users.id";
+
+//    private final static String INSERT_PHRASE =
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final NamedParameterJdbcTemplate mysqlNamedParameterJdbcTemplate;
@@ -80,8 +85,12 @@ public class PhraseDao {
         return namedParameterJdbcTemplate.query(SELECT_ALL_POSTGRES, POSTGRESQL_PHRASE_MAPPER);
     }
 
+    /*public int createAll(List<Phrase> phrasesToCreate){
+
+    }*/
+
     public List<Phrase> getAllMysql() {
-        return mysqlNamedParameterJdbcTemplate.query(SELECT_ALL_MYSQL, MYSQL_PHRASE_MAPPER);
+        return mysqlNamedParameterJdbcTemplate.query(SELECT_ALL_MYSQL, new MysqlPhraseMapper(false));
     }
 
     private final static class PostgresqlPhraseMapper implements ResultSetExtractor<List<Phrase>> {
@@ -101,7 +110,7 @@ public class PhraseDao {
                     double probabilityMultiplier = rs.getFloat(PHRASE_PROBABILITY_MULTIPLIER);
                     phrases.add(new Phrase(
                             rs.getString(PHRASE_ID), DateTimeUtils.toLocalDateTime(rs.getTimestamp(PHRASE_CREATION_DATE)),
-                            probabilityFactor, probabilityMultiplier, label, words, lastAccessDate
+                            probabilityFactor, probabilityMultiplier, label, null/*todo*/, null/*todo*/, words, lastAccessDate
                     ));
                 }
                 if (rs.getString(WORDS_WORD) != null) {
@@ -121,6 +130,12 @@ public class PhraseDao {
 
     private final static class MysqlPhraseMapper implements ResultSetExtractor<List<Phrase>> {
 
+        private final boolean includeUser;
+
+        public MysqlPhraseMapper(boolean includeUser) {
+            this.includeUser = includeUser;
+        }
+
         @Override
         public List<Phrase> extractData(ResultSet rs) throws SQLException, DataAccessException {
 
@@ -132,6 +147,8 @@ public class PhraseDao {
                 final String transcription = rs.getString("transcr");
                 final String label = rs.getString("label") != null && rs.getString("label").equals("")
                         ? null : rs.getString("label");
+                final User user = new User(rs.getString("login"), rs.getString("email"), rs.getString("name"), rs.getString("password"));
+
 
                 LocalDateTime lastAccessDate = DateTimeUtils.toLocalDateTime(rs.getTimestamp("last_accs_date"));
                 double probabilityFactor = new BigDecimal(rs.getFloat("prob_factor"))
@@ -155,7 +172,12 @@ public class PhraseDao {
                                 new Phrase(
                                         UUID.randomUUID().toString(),
                                         DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
-                                        probabilityFactor, probabilityMultiplier, label, words, lastAccessDate
+                                        probabilityFactor,
+                                        probabilityMultiplier,
+                                        label,
+                                        user.getLogin(), includeUser ? user : null,
+                                        words,
+                                        lastAccessDate
                                 )
                         );
                     }
@@ -186,7 +208,13 @@ public class PhraseDao {
                     phrases.add(new Phrase(
                             UUID.randomUUID().toString(),
                             DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
-                            probabilityFactor, probabilityMultiplier, label, Collections.unmodifiableList(words), lastAccessDate
+                            probabilityFactor,
+                            probabilityMultiplier,
+                            label,
+                            user.getLogin(),
+                            includeUser ? user : null,
+                            Collections.unmodifiableList(words),
+                            lastAccessDate
                     ));
                 }
 

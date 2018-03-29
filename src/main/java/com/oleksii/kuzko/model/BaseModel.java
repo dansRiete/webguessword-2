@@ -5,7 +5,7 @@ public class BaseModel {
     protected final String id;
 
 
-    public BaseModel(String id) {
+    BaseModel(String id) {
         this.id = id;
     }
 

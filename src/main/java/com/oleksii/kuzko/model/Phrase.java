@@ -16,18 +16,22 @@ public class Phrase extends BaseModel{
     private final Double probabilityFactor;
     private final Double probabilityMultiplier;
     private final String label;
+    private final String userId;
+    private final User user;
     private final List<Word> words;
     private final LocalDateTime lastAccessDate;
 
     public Phrase(
             String id, LocalDateTime creationDate, Double probabilityFactor,
-            Double probabilityMultiplier, String label, List<Word> words, LocalDateTime lastAccessDate
+            Double probabilityMultiplier, String label, String userId, User user, List<Word> words, LocalDateTime lastAccessDate
     ) {
         super(id);
         this.probabilityFactor = probabilityFactor;
         this.probabilityMultiplier = probabilityMultiplier;
         this.creationDate = creationDate;
         this.label = label;
+        this.userId = userId;
+        this.user = user;
         this.words = words;
         this.lastAccessDate = lastAccessDate;
     }
@@ -60,6 +64,10 @@ public class Phrase extends BaseModel{
 
     public double getProbabilityMultiplier() {
         return probabilityMultiplier;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     @Override
@@ -96,5 +104,9 @@ public class Phrase extends BaseModel{
                 .add("probabilityFactor", probabilityFactor)
                 .add("probabilityMultiplier", probabilityMultiplier)
                 .toString();
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }
