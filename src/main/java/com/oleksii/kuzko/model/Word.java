@@ -2,6 +2,7 @@ package com.oleksii.kuzko.model;
 
 import com.google.common.base.MoreObjects;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -9,16 +10,20 @@ import java.util.stream.Collectors;
 /**
  * @author The Weather Company, An IBM Business
  */
-public class Word {
+public class Word extends BaseModel{
 
     private final String word;
     private final String language;
     private final String transcription;
+    private final LocalDateTime additionDate;
 
-    public Word(String word, String language, String transcription) {
+    public Word(String id, String word, String language, String transcription,
+            LocalDateTime additionDate) {
+        super(id);
         this.word = normalizeWord(word);
         this.language = language;
         this.transcription = transcription;
+        this.additionDate = additionDate;
     }
 
     public String getWord() {
@@ -64,5 +69,9 @@ public class Word {
                 .add("language", language)
                 .add("transcription", transcription)
                 .toString();
+    }
+
+    public LocalDateTime getAdditionDate() {
+        return additionDate;
     }
 }
