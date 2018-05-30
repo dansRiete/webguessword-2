@@ -7,16 +7,20 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -59,6 +63,17 @@ public class PhraseDao {
             "SELECT * FROM guessword.words INNER JOIN guessword.users " +
                     "ON user_id = guessword.users.id";
 
+    private final static String INSERT_PHRASE_SQL = "INSERT INTO phrases VALUES\n"
+            + "  (:id, :user_login, :is_active, :creation_date, :language_1, :language_2,\n"
+            + "   :probability_factor, :probability_multiplier, :last_access_date, :label)";
+
+    //todo do it if not exists
+    private final static String INSERT_WORD_SQL = "INSERT INTO words VALUES\n"
+            + "  (:word, :language_code, :transcription, :id)";
+
+    private final static String INSERT_PHRASE_WORD_SQL = "INSERT INTO phrase_word VALUES\n"
+            + "  (:id, :phrase_id, :word_id, :addition_date, :is_active)";
+
 //    private final static String INSERT_PHRASE =
 
     private final NamedParameterJdbcTemplate postgresNamedParameterJdbcTemplate;
@@ -72,14 +87,59 @@ public class PhraseDao {
         this.mysqlNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(mysqlDatasource);
     }
 
+    @Transactional
+    public Phrase createPhrase(Phrase phraseToCreate){
+
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+
+        mapSqlParameterSource.addValue("id", phraseToCreate.getId());
+        mapSqlParameterSource.addValue("user_login", "alex");
+        mapSqlParameterSource.addValue("is_active", true);
+        mapSqlParameterSource.addValue("creation_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+        mapSqlParameterSource.addValue("language_1", /*todo languages*/"en");
+        mapSqlParameterSource.addValue("language_2", /*todo languages*/"ru");
+        mapSqlParameterSource.addValue("probability_factor", phraseToCreate.getProbabilityFactor());
+        mapSqlParameterSource.addValue("probability_multiplier", phraseToCreate.getProbabilityMultiplier());
+        mapSqlParameterSource.addValue("last_access_date", phraseToCreate.getLastAccessDate());
+        mapSqlParameterSource.addValue("label", phraseToCreate.getLabel());
+
+        postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_SQL, mapSqlParameterSource);
+        List<String> wordsIds = new ArrayList<>();
+
+        for(Word currentWord : phraseToCreate.getWords()){
+
+            String currentWordId = UUID.randomUUID().toString();
+
+            mapSqlParameterSource = new MapSqlParameterSource();
+
+            mapSqlParameterSource.addValue("word", currentWord.getWord());
+            mapSqlParameterSource.addValue("language_code", currentWord.getLanguage());
+            mapSqlParameterSource.addValue("transcription", currentWord.getTranscription());
+            mapSqlParameterSource.addValue("id", currentWordId);
+
+            postgresNamedParameterJdbcTemplate.update(INSERT_WORD_SQL, mapSqlParameterSource);
+
+            wordsIds.add(currentWordId);
+        }
+
+        for(String currentWordId : wordsIds){
+            mapSqlParameterSource = new MapSqlParameterSource();
+            mapSqlParameterSource.addValue("id", UUID.randomUUID().toString());
+            mapSqlParameterSource.addValue("phrase_id", phraseToCreate.getId());
+            mapSqlParameterSource.addValue("word_id", currentWordId);
+            mapSqlParameterSource.addValue("is_active", true);
+            mapSqlParameterSource.addValue("addition_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+            postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_WORD_SQL, mapSqlParameterSource);
+        }
+
+        //todo return actual phrase
+        return phraseToCreate;
+    }
+
     public List<Phrase> getAll() {
         return postgresNamedParameterJdbcTemplate
                 .query(SELECT_ALL_POSTGRES, POSTGRESQL_PHRASE_MAPPER);
     }
-
-    /*public int createAll(List<Phrase> phrasesToCreate){
-
-    }*/
 
     public List<Phrase> getAllMysql() {
         return mysqlNamedParameterJdbcTemplate.query(SELECT_ALL_MYSQL, new MysqlPhraseMapper(false));

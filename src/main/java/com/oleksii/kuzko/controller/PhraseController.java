@@ -43,4 +43,9 @@ public class PhraseController {
         return ResponseEntity.ok(phraseService.getAllMysql());
     }
 
+    @GetMapping(value = "/copy", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity copy() {
+        return ResponseEntity.ok(phraseService.copy());
+    }
+
 }

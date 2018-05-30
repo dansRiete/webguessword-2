@@ -3,6 +3,7 @@ package com.oleksii.kuzko.service;
 import com.oleksii.kuzko.dao.PhraseDao;
 import com.oleksii.kuzko.model.Phrase;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,5 +29,14 @@ public class PhraseService {
 
     public List<Phrase> getAllMysql() {
         return phraseDao.getAllMysql();
+    }
+
+    @Transactional
+    public boolean copy() {
+        List<Phrase> allPhrases = getAllMysql();
+        for(Phrase currentPhrase : allPhrases){
+            phraseDao.createPhrase(currentPhrase);
+        }
+        return true;
     }
 }
