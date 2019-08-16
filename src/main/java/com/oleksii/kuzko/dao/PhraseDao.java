@@ -25,9 +25,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 @Repository
 public class PhraseDao {
 

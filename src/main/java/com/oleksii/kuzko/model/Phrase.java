@@ -7,9 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 public class Phrase extends BaseModel{
 
     private final LocalDateTime creationDate;

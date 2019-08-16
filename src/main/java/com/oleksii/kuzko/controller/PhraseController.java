@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 @RestController
 @RequestMapping("/phrase")
 public class PhraseController {

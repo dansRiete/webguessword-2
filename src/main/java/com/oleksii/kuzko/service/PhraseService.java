@@ -7,9 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 @Service
 public class PhraseService {
 

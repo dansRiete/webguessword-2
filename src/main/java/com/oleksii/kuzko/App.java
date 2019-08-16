@@ -10,9 +10,6 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 @SpringBootApplication
 public class App {
 

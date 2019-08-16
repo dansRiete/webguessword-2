@@ -7,9 +7,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * @author The Weather Company, An IBM Business
- */
 public class Word extends BaseModel{
 
     private final String word;
