@@ -12,7 +12,7 @@ public class Question extends BaseModel {
     private final LocalDateTime creationDate;
     private final Double probabilityFactor;
     private final Double probabilityMultiplier;
-    private final String label;
+    private final String tag;
     private final String userId;
     private final User user;
     private final List<Word> words;
@@ -20,14 +20,14 @@ public class Question extends BaseModel {
 
     public Question(
             String id, LocalDateTime creationDate, Double probabilityFactor,
-            Double probabilityMultiplier, String label, String userId, User user, List<Word> words,
+            Double probabilityMultiplier, String tag, String userId, User user, List<Word> words,
             LocalDateTime lastAccessDate
     ) {
         super(id);
         this.probabilityFactor = probabilityFactor;
         this.probabilityMultiplier = probabilityMultiplier;
         this.creationDate = creationDate;
-        this.label = label;
+        this.tag = tag;
         this.userId = userId;
         this.user = user;
         this.words = words;
@@ -38,8 +38,8 @@ public class Question extends BaseModel {
         return id;
     }
 
-    public String getLabel() {
-        return label;
+    public String getTag() {
+        return tag;
     }
 
     public List<Word> getWords() {
@@ -70,7 +70,7 @@ public class Question extends BaseModel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, label, words, creationDate, lastAccessDate, probabilityFactor, probabilityMultiplier);
+        return Objects.hash(id, tag, words, creationDate, lastAccessDate, probabilityFactor, probabilityMultiplier);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class Question extends BaseModel {
         return Double.compare(question.probabilityFactor, probabilityFactor) == 0 &&
                 Double.compare(question.probabilityMultiplier, probabilityMultiplier) == 0 &&
                 Objects.equals(id, question.id) &&
-                Objects.equals(label, question.label) &&
+                Objects.equals(tag, question.tag) &&
                 Objects.equals(words, question.words) &&
                 Objects.equals(creationDate, question.creationDate) &&
                 Objects.equals(lastAccessDate, question.lastAccessDate);
@@ -95,7 +95,7 @@ public class Question extends BaseModel {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
-                .add("label", label)
+                .add("tag", tag)
                 .add("words", words)
                 .add("creationDate", creationDate)
                 .add("lastAccessDate", lastAccessDate)

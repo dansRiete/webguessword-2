@@ -99,7 +99,7 @@ public class QuestionDao {
         mapSqlParameterSource.addValue("probability_factor", questionToCreate.getProbabilityFactor());
         mapSqlParameterSource.addValue("probability_multiplier", questionToCreate.getProbabilityMultiplier());
         mapSqlParameterSource.addValue("last_access_date", questionToCreate.getLastAccessDate());
-        mapSqlParameterSource.addValue("label", questionToCreate.getLabel());
+        mapSqlParameterSource.addValue("label", questionToCreate.getTag());
 
         postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_SQL, mapSqlParameterSource);
         List<String> wordsIds = new ArrayList<>();
