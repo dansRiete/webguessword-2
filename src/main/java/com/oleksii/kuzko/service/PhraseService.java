@@ -31,7 +31,7 @@ public class PhraseService {
     @Transactional
     public boolean copy() {
         List<Phrase> allPhrases = getAllMysql();
-        for(Phrase currentPhrase : allPhrases){
+        for (Phrase currentPhrase : allPhrases) {
             phraseDao.createPhrase(currentPhrase);
         }
         return true;

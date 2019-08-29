@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Word extends BaseModel{
+public class Word extends BaseModel {
 
     private final String word;
     private final String language;

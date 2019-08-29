@@ -33,28 +33,28 @@ public class PhraseDao {
 
     private final static String SELECT_ALL_POSTGRES =
             "SELECT\n"
-            + "  phrases.id                AS phrase_id,\n"
-            + "  phrases.user_login,\n"
-            + "  phrases.creation_date,\n"
-            + "  phrases.last_access_date,\n"
-            + "  phrases.language_1,\n"
-            + "  phrases.language_2,\n"
-            + "  phrases.probability_factor,\n"
-            + "  phrases.probability_multiplier,\n"
-            + "  phrases.last_access_date,\n"
-            + "  phrases.label,\n"
-            + "  phrase_word.id            AS phrase_word_id,\n"
-            + "  phrase_word.word_id,\n"
-            + "  phrase_word.addition_date AS word_addition_date,\n"
-            + "  words.word,\n"
-            + "  words.language_code       AS word_language_code,\n"
-            + "  words.transcription       AS transcription\n"
-            + "FROM phrase_word\n"
-            + "  INNER JOIN phrases ON phrase_id = phrases.id\n"
-            + "  INNER JOIN words ON phrase_word.word_id = words.id\n"
-            + "WHERE phrase_word.is_active = TRUE\n"
-            + "      AND phrases.is_active = TRUE\n"
-            + "ORDER BY phrase_id, phrase_word_id";
+                    + "  phrases.id                AS phrase_id,\n"
+                    + "  phrases.user_login,\n"
+                    + "  phrases.creation_date,\n"
+                    + "  phrases.last_access_date,\n"
+                    + "  phrases.language_1,\n"
+                    + "  phrases.language_2,\n"
+                    + "  phrases.probability_factor,\n"
+                    + "  phrases.probability_multiplier,\n"
+                    + "  phrases.last_access_date,\n"
+                    + "  phrases.label,\n"
+                    + "  phrase_word.id            AS phrase_word_id,\n"
+                    + "  phrase_word.word_id,\n"
+                    + "  phrase_word.addition_date AS word_addition_date,\n"
+                    + "  words.word,\n"
+                    + "  words.language_code       AS word_language_code,\n"
+                    + "  words.transcription       AS transcription\n"
+                    + "FROM phrase_word\n"
+                    + "  INNER JOIN phrases ON phrase_id = phrases.id\n"
+                    + "  INNER JOIN words ON phrase_word.word_id = words.id\n"
+                    + "WHERE phrase_word.is_active = TRUE\n"
+                    + "      AND phrases.is_active = TRUE\n"
+                    + "ORDER BY phrase_id, phrase_word_id";
 
     private final static String SELECT_ALL_MYSQL =
             "SELECT * FROM guessword.words INNER JOIN guessword.users " +
@@ -71,7 +71,7 @@ public class PhraseDao {
     private final static String INSERT_PHRASE_WORD_SQL = "INSERT INTO phrase_word VALUES\n"
             + "  (:id, :phrase_id, :word_id, :addition_date, :is_active)";
 
-//    private final static String INSERT_PHRASE =
+    //    private final static String INSERT_PHRASE =
 
     private final NamedParameterJdbcTemplate postgresNamedParameterJdbcTemplate;
     private final NamedParameterJdbcTemplate mysqlNamedParameterJdbcTemplate;
@@ -85,14 +85,15 @@ public class PhraseDao {
     }
 
     @Transactional
-    public Phrase createPhrase(Phrase phraseToCreate){
+    public Phrase createPhrase(Phrase phraseToCreate) {
 
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
         mapSqlParameterSource.addValue("id", phraseToCreate.getId());
         mapSqlParameterSource.addValue("user_login", "alex");
         mapSqlParameterSource.addValue("is_active", true);
-        mapSqlParameterSource.addValue("creation_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+        mapSqlParameterSource
+                .addValue("creation_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
         mapSqlParameterSource.addValue("language_1", /*todo languages*/"en");
         mapSqlParameterSource.addValue("language_2", /*todo languages*/"ru");
         mapSqlParameterSource.addValue("probability_factor", phraseToCreate.getProbabilityFactor());
@@ -103,7 +104,7 @@ public class PhraseDao {
         postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_SQL, mapSqlParameterSource);
         List<String> wordsIds = new ArrayList<>();
 
-        for(Word currentWord : phraseToCreate.getWords()){
+        for (Word currentWord : phraseToCreate.getWords()) {
 
             String currentWordId = UUID.randomUUID().toString();
 
@@ -119,13 +120,14 @@ public class PhraseDao {
             wordsIds.add(currentWordId);
         }
 
-        for(String currentWordId : wordsIds){
+        for (String currentWordId : wordsIds) {
             mapSqlParameterSource = new MapSqlParameterSource();
             mapSqlParameterSource.addValue("id", UUID.randomUUID().toString());
             mapSqlParameterSource.addValue("phrase_id", phraseToCreate.getId());
             mapSqlParameterSource.addValue("word_id", currentWordId);
             mapSqlParameterSource.addValue("is_active", true);
-            mapSqlParameterSource.addValue("addition_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+            mapSqlParameterSource.addValue("addition_date",
+                    Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
             postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_WORD_SQL, mapSqlParameterSource);
         }
 
@@ -150,22 +152,23 @@ public class PhraseDao {
             Phrase phrase = null;
             String phraseId = null;
             List<Word> words = new ArrayList<>();
-            while (rs.next()){
+            while (rs.next()) {
                 String currentPhraseId = rs.getString("phrase_id");
-                if(phrase != null && !currentPhraseId.equals(phraseId)){
+                if (phrase != null && !currentPhraseId.equals(phraseId)) {
                     phrases.add(phrase);
                     words = new ArrayList<>();
                 }
                 words.add(
-                            new Word(
-                                    rs.getString("word_id"),
-                                    rs.getString("word"),
-                                    rs.getString("word_language_code"),
-                                    rs.getString("transcription"),
-                                    LocalDateTime.ofInstant(
-                                            Instant.ofEpochMilli(rs.getTimestamp("word_addition_date").getTime()), ZoneId.of("UTC")
-                                    )
-                            )
+                        new Word(
+                                rs.getString("word_id"),
+                                rs.getString("word"),
+                                rs.getString("word_language_code"),
+                                rs.getString("transcription"),
+                                LocalDateTime.ofInstant(
+                                        Instant.ofEpochMilli(rs.getTimestamp("word_addition_date").getTime()),
+                                        ZoneId.of("UTC")
+                                )
+                        )
                 );
                 phrase = new Phrase(
                         rs.getString("phrase_id"),
@@ -180,10 +183,10 @@ public class PhraseDao {
                         null,
                         Collections.unmodifiableList(words),
                         rs.getTimestamp("last_access_date") == null ? null : LocalDateTime.ofInstant(
-                                        Instant.ofEpochMilli(rs.getTimestamp("last_access_date").getTime()), ZoneId.of("UTC")
+                                Instant.ofEpochMilli(rs.getTimestamp("last_access_date").getTime()), ZoneId.of("UTC")
                         )
                 );
-                if(rs.isLast()){
+                if (rs.isLast()) {
                     phrases.add(phrase);
                 }
                 phraseId = currentPhraseId;
@@ -192,7 +195,6 @@ public class PhraseDao {
             return phrases;
         }
     }
-
 
     private final static class MysqlPhraseMapper implements ResultSetExtractor<List<Phrase>> {
 
@@ -213,8 +215,8 @@ public class PhraseDao {
                 final String transcription = rs.getString("transcr");
                 final String label = rs.getString("label") != null && rs.getString("label").equals("")
                         ? null : rs.getString("label");
-                final User user = new User(rs.getString("login"), rs.getString("email"), rs.getString("name"), rs.getString("password"));
-
+                final User user = new User(rs.getString("login"), rs.getString("email"), rs.getString("name"),
+                        rs.getString("password"));
 
                 LocalDateTime lastAccessDate = DateTimeUtils.toLocalDateTime(rs.getTimestamp("last_accs_date"));
                 double probabilityFactor = new BigDecimal(rs.getFloat("prob_factor"))
@@ -227,7 +229,8 @@ public class PhraseDao {
                     final String[] forWords = forWord.split("/");
                     final String[] natWords = natWord.split("/");
                     if (forWords.length != natWords.length) {
-                        LOGGER.error("forWords.length != natWords.length, forWord = " + forWord + ", natWord = " + natWord);
+                        LOGGER.error(
+                                "forWords.length != natWords.length, forWord = " + forWord + ", natWord = " + natWord);
                         continue;
                     }
                     for (int i = 0; i < forWords.length; i++) {
@@ -251,7 +254,6 @@ public class PhraseDao {
                 } else {
 
                     List<Word> words = new ArrayList<>();
-
 
                     if (forWord.contains("/")) {
                         List<Word> engWords = Arrays.stream(forWord.split("/"))
@@ -283,7 +285,6 @@ public class PhraseDao {
                             lastAccessDate
                     ));
                 }
-
 
             }
             return phrases;

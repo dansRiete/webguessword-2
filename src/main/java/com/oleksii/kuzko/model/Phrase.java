@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class Phrase extends BaseModel{
+public class Phrase extends BaseModel {
 
     private final LocalDateTime creationDate;
     private final Double probabilityFactor;
@@ -20,7 +20,8 @@ public class Phrase extends BaseModel{
 
     public Phrase(
             String id, LocalDateTime creationDate, Double probabilityFactor,
-            Double probabilityMultiplier, String label, String userId, User user, List<Word> words, LocalDateTime lastAccessDate
+            Double probabilityMultiplier, String label, String userId, User user, List<Word> words,
+            LocalDateTime lastAccessDate
     ) {
         super(id);
         this.probabilityFactor = probabilityFactor;
