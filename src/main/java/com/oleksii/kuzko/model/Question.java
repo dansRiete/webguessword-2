@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class Phrase extends BaseModel {
+public class Question extends BaseModel {
 
     private final LocalDateTime creationDate;
     private final Double probabilityFactor;
@@ -18,7 +18,7 @@ public class Phrase extends BaseModel {
     private final List<Word> words;
     private final LocalDateTime lastAccessDate;
 
-    public Phrase(
+    public Question(
             String id, LocalDateTime creationDate, Double probabilityFactor,
             Double probabilityMultiplier, String label, String userId, User user, List<Word> words,
             LocalDateTime lastAccessDate
@@ -81,14 +81,14 @@ public class Phrase extends BaseModel {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Phrase phrase = (Phrase) o;
-        return Double.compare(phrase.probabilityFactor, probabilityFactor) == 0 &&
-                Double.compare(phrase.probabilityMultiplier, probabilityMultiplier) == 0 &&
-                Objects.equals(id, phrase.id) &&
-                Objects.equals(label, phrase.label) &&
-                Objects.equals(words, phrase.words) &&
-                Objects.equals(creationDate, phrase.creationDate) &&
-                Objects.equals(lastAccessDate, phrase.lastAccessDate);
+        Question question = (Question) o;
+        return Double.compare(question.probabilityFactor, probabilityFactor) == 0 &&
+                Double.compare(question.probabilityMultiplier, probabilityMultiplier) == 0 &&
+                Objects.equals(id, question.id) &&
+                Objects.equals(label, question.label) &&
+                Objects.equals(words, question.words) &&
+                Objects.equals(creationDate, question.creationDate) &&
+                Objects.equals(lastAccessDate, question.lastAccessDate);
     }
 
     @Override

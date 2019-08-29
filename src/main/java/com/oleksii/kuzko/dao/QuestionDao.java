@@ -1,6 +1,6 @@
 package com.oleksii.kuzko.dao;
 
-import com.oleksii.kuzko.model.Phrase;
+import com.oleksii.kuzko.model.Question;
 import com.oleksii.kuzko.model.User;
 import com.oleksii.kuzko.model.Word;
 import org.apache.log4j.Logger;
@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 @Repository
-public class PhraseDao {
+public class QuestionDao {
 
     private final static PostgreSqlPhraseMapper POSTGRESQL_PHRASE_MAPPER = new PostgreSqlPhraseMapper();
-    private final static Logger LOGGER = Logger.getLogger(PhraseDao.class);
+    private final static Logger LOGGER = Logger.getLogger(QuestionDao.class);
 
     private final static String SELECT_ALL_POSTGRES =
             "SELECT\n"
@@ -76,7 +76,7 @@ public class PhraseDao {
     private final NamedParameterJdbcTemplate postgresNamedParameterJdbcTemplate;
     private final NamedParameterJdbcTemplate mysqlNamedParameterJdbcTemplate;
 
-    public PhraseDao(
+    public QuestionDao(
             NamedParameterJdbcTemplate postgresNamedParameterJdbcTemplate,
             @Qualifier("mysqlDatasource") DataSource mysqlDatasource
     ) {
@@ -85,26 +85,26 @@ public class PhraseDao {
     }
 
     @Transactional
-    public Phrase createPhrase(Phrase phraseToCreate) {
+    public Question createPhrase(Question questionToCreate) {
 
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-        mapSqlParameterSource.addValue("id", phraseToCreate.getId());
+        mapSqlParameterSource.addValue("id", questionToCreate.getId());
         mapSqlParameterSource.addValue("user_login", "alex");
         mapSqlParameterSource.addValue("is_active", true);
         mapSqlParameterSource
-                .addValue("creation_date", Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+                .addValue("creation_date", Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
         mapSqlParameterSource.addValue("language_1", /*todo languages*/"en");
         mapSqlParameterSource.addValue("language_2", /*todo languages*/"ru");
-        mapSqlParameterSource.addValue("probability_factor", phraseToCreate.getProbabilityFactor());
-        mapSqlParameterSource.addValue("probability_multiplier", phraseToCreate.getProbabilityMultiplier());
-        mapSqlParameterSource.addValue("last_access_date", phraseToCreate.getLastAccessDate());
-        mapSqlParameterSource.addValue("label", phraseToCreate.getLabel());
+        mapSqlParameterSource.addValue("probability_factor", questionToCreate.getProbabilityFactor());
+        mapSqlParameterSource.addValue("probability_multiplier", questionToCreate.getProbabilityMultiplier());
+        mapSqlParameterSource.addValue("last_access_date", questionToCreate.getLastAccessDate());
+        mapSqlParameterSource.addValue("label", questionToCreate.getLabel());
 
         postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_SQL, mapSqlParameterSource);
         List<String> wordsIds = new ArrayList<>();
 
-        for (Word currentWord : phraseToCreate.getWords()) {
+        for (Word currentWord : questionToCreate.getWords()) {
 
             String currentWordId = UUID.randomUUID().toString();
 
@@ -123,39 +123,39 @@ public class PhraseDao {
         for (String currentWordId : wordsIds) {
             mapSqlParameterSource = new MapSqlParameterSource();
             mapSqlParameterSource.addValue("id", UUID.randomUUID().toString());
-            mapSqlParameterSource.addValue("phrase_id", phraseToCreate.getId());
+            mapSqlParameterSource.addValue("phrase_id", questionToCreate.getId());
             mapSqlParameterSource.addValue("word_id", currentWordId);
             mapSqlParameterSource.addValue("is_active", true);
             mapSqlParameterSource.addValue("addition_date",
-                    Timestamp.from(phraseToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+                    Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
             postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_WORD_SQL, mapSqlParameterSource);
         }
 
         //todo return actual phrase
-        return phraseToCreate;
+        return questionToCreate;
     }
 
-    public List<Phrase> getAll() {
+    public List<Question> getAll() {
         return postgresNamedParameterJdbcTemplate
                 .query(SELECT_ALL_POSTGRES, POSTGRESQL_PHRASE_MAPPER);
     }
 
-    public List<Phrase> getAllMysql() {
+    public List<Question> getAllMysql() {
         return mysqlNamedParameterJdbcTemplate.query(SELECT_ALL_MYSQL, new MysqlPhraseMapper(false));
     }
 
-    private final static class PostgreSqlPhraseMapper implements ResultSetExtractor<List<Phrase>> {
+    private final static class PostgreSqlPhraseMapper implements ResultSetExtractor<List<Question>> {
 
         @Override
-        public List<Phrase> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            List<Phrase> phrases = new ArrayList<>();
-            Phrase phrase = null;
+        public List<Question> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            List<Question> questions = new ArrayList<>();
+            Question question = null;
             String phraseId = null;
             List<Word> words = new ArrayList<>();
             while (rs.next()) {
                 String currentPhraseId = rs.getString("phrase_id");
-                if (phrase != null && !currentPhraseId.equals(phraseId)) {
-                    phrases.add(phrase);
+                if (question != null && !currentPhraseId.equals(phraseId)) {
+                    questions.add(question);
                     words = new ArrayList<>();
                 }
                 words.add(
@@ -170,7 +170,7 @@ public class PhraseDao {
                                 )
                         )
                 );
-                phrase = new Phrase(
+                question = new Question(
                         rs.getString("phrase_id"),
                         LocalDateTime.ofInstant(
                                 Instant.ofEpochMilli(rs.getTimestamp("creation_date").getTime()),
@@ -187,16 +187,16 @@ public class PhraseDao {
                         )
                 );
                 if (rs.isLast()) {
-                    phrases.add(phrase);
+                    questions.add(question);
                 }
                 phraseId = currentPhraseId;
 
             }
-            return phrases;
+            return questions;
         }
     }
 
-    private final static class MysqlPhraseMapper implements ResultSetExtractor<List<Phrase>> {
+    private final static class MysqlPhraseMapper implements ResultSetExtractor<List<Question>> {
 
         private final boolean includeUser;
 
@@ -205,9 +205,9 @@ public class PhraseDao {
         }
 
         @Override
-        public List<Phrase> extractData(ResultSet rs) throws SQLException, DataAccessException {
+        public List<Question> extractData(ResultSet rs) throws SQLException, DataAccessException {
 
-            List<Phrase> phrases = new ArrayList<>();
+            List<Question> questions = new ArrayList<>();
             while (rs.next()) {
 
                 final String forWord = rs.getString("for_word");
@@ -237,8 +237,8 @@ public class PhraseDao {
                         Word foreignWord = new Word(null, forWords[i], "en", transcription, null);
                         Word nativeWord = new Word(null, natWords[i], "ru", null, null);
                         List<Word> words = Collections.unmodifiableList(Arrays.asList(foreignWord, nativeWord));
-                        phrases.add(
-                                new Phrase(
+                        questions.add(
+                                new Question(
                                         UUID.randomUUID().toString(),
                                         DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
                                         probabilityFactor,
@@ -273,7 +273,7 @@ public class PhraseDao {
                         words.add(new Word(null, natWord, "ru", null, null));
                     }
 
-                    phrases.add(new Phrase(
+                    questions.add(new Question(
                             UUID.randomUUID().toString(),
                             DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
                             probabilityFactor,
@@ -287,7 +287,7 @@ public class PhraseDao {
                 }
 
             }
-            return phrases;
+            return questions;
         }
     }
 
