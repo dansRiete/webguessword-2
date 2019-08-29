@@ -11,17 +11,5 @@
             Initial schema for WebGuessWord-2
         </comment>
     </changeSet>
-    <changeSet id="v0-1-0_002" author="aleks.ce267@gmail.com">
-        <sqlFile relativeToChangelogFile="true" path="sql/v0-1-0_002.sql"/>
-    </changeSet>
-    <changeSet id="v0-1-0_003" author="aleks.ce267@gmail.com">
-        <sqlFile relativeToChangelogFile="true" path="sql/v0-1-0_003.sql"/>
-    </changeSet>
-    <changeSet id="v0-1-0_004" author="aleks.ce267@gmail.com">
-        <sqlFile relativeToChangelogFile="true" path="sql/v0-1-0_004.sql"/>
-    </changeSet>
-    <changeSet id="v0-1-0_005" author="aleks.ce267@gmail.com">
-        <sqlFile relativeToChangelogFile="true" path="sql/v0-1-0_005.sql"/>
-    </changeSet>
 
 </databaseChangeLog>
