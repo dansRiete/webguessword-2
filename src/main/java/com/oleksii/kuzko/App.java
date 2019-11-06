@@ -1,11 +1,9 @@
 package com.oleksii.kuzko;
 
-//import liquibase.integration.spring.SpringLiquibase;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -23,14 +21,6 @@ public class App {
     public DataSource mysqlDataSource() {
         return DataSourceBuilder.create().build();
     }
-
-    /*@Bean
-    public SpringLiquibase liquibase() {
-        SpringLiquibase liquibase = new SpringLiquibase();
-        liquibase.setChangeLog("classpath:db/changelog.xml");
-        liquibase.setDataSource(postgresDataSource());
-        return liquibase;
-    }*/
 
     @Primary
     @Bean(name = "postgresDatasource")
