@@ -1,99 +1,85 @@
-CREATE TABLE users
+create table if not exists client
 (
-  user_login        TEXT      NOT NULL,
-  email             TEXT      NOT NULL,
-  registration_date TIMESTAMP NOT NULL,
-  last_access_date  TIMESTAMP,
-  is_active         BOOLEAN   NOT NULL
+	client_login text not null
+		constraint client_pk
+			primary key,
+	email text not null,
+	registration_date timestamp not null,
+	last_access timestamp not null,
+	is_active boolean not null,
+	password integer
 );
 
-CREATE UNIQUE INDEX users_user_login_uindex
-  ON users (user_login);
+alter table client owner to postgres;
 
-CREATE UNIQUE INDEX users_email_uindex
-  ON users (email);
+create unique index if not exists client_user_login_uindex
+	on client (client_login);
 
-CREATE TABLE phrases
+create table if not exists question
 (
-  id                     TEXT             NOT NULL
-    CONSTRAINT phrases_pkey
-    PRIMARY KEY,
-  user_login             TEXT             NOT NULL
-    CONSTRAINT phrases_users_user_login_fk
-    REFERENCES users (user_login),
-  is_active              BOOLEAN          NOT NULL,
-  creation_date          TIMESTAMP        NOT NULL,
-  language_1             TEXT             NOT NULL,
-  language_2             TEXT             NOT NULL,
-  probability_factor     DOUBLE PRECISION NOT NULL,
-  probability_multiplier DOUBLE PRECISION NOT NULL,
-  last_access_date       TIMESTAMP,
-  label                  TEXT
+	id serial not null
+		constraint question_pk
+			primary key,
+	client_login text not null,
+	is_active boolean not null,
+	created timestamp not null,
+	probability_factor double precision not null,
+	probability_multiplier double precision not null,
+	last_accessed timestamp,
+	tag text
 );
 
-CREATE UNIQUE INDEX phrases_id_uindex
-  ON phrases (id);
+alter table question owner to postgres;
 
-CREATE TABLE languages
+create unique index if not exists question_id_uindex
+	on question (id);
+
+create table if not exists language
 (
-  code          TEXT NOT NULL
-    CONSTRAINT languages_pkey
-    PRIMARY KEY,
-  language_name TEXT NOT NULL
+	language_code text not null
+		constraint language_pk
+			primary key,
+	name text not null
 );
 
-CREATE UNIQUE INDEX langulages_code_uindex
-  ON languages (code);
+alter table language owner to postgres;
 
-ALTER TABLE phrases
-  ADD CONSTRAINT phrases_languages_code_fk1
-FOREIGN KEY (language_1) REFERENCES languages;
+create unique index if not exists language_language_code_uindex
+	on language (language_code);
 
-ALTER TABLE phrases
-  ADD CONSTRAINT phrases_languages_code_fk2
-FOREIGN KEY (language_2) REFERENCES languages;
-
-CREATE TABLE words
+create table if not exists word
 (
-  word          TEXT NOT NULL
-    CONSTRAINT words_pkey
-    PRIMARY KEY,
-  language_code TEXT
-    CONSTRAINT words_languages_code_fk
-    REFERENCES languages,
-  transcription TEXT
+	id serial not null
+		constraint question_word_pk
+			primary key,
+	question_id text not null,
+	word text not null,
+	added timestamp not null,
+	is_active boolean not null,
+	language_code text not null,
+	transcription text
 );
 
-CREATE UNIQUE INDEX words_word_uindex
-  ON words (word);
+alter table word owner to postgres;
 
-CREATE TABLE phrases_words
+create unique index if not exists question_word_id_uindex
+	on word (id);
+
+create table if not exists answer
 (
-  phrase_word_id TEXT      NOT NULL
-    CONSTRAINT phrases_words_pkey
-    PRIMARY KEY,
-  phrase_id      TEXT      NOT NULL
-    CONSTRAINT phrases_words_phrases_id_fk
-    REFERENCES phrases,
-  word           TEXT      NOT NULL
-    CONSTRAINT phrases_words_words_word_fk
-    REFERENCES words,
-  addition_date  TIMESTAMP NOT NULL,
-  is_active      BOOLEAN   NOT NULL
+	client_login text not null,
+	question_id integer not null,
+	is_right boolean not null,
+	answered timestamp not null,
+	id serial not null
+		constraint answer_pk
+			primary key
 );
 
-CREATE UNIQUE INDEX phrases_words_phrase_word_id_uindex
-  ON phrases_words (phrase_word_id);
+alter table answer owner to postgres;
 
-CREATE TABLE answers
-(
-  user_login      TEXT      NOT NULL
-    CONSTRAINT answers_users_user_login_fk
-    REFERENCES users (user_login),
-  phrase_id       TEXT      NOT NULL
-    CONSTRAINT answers_phrases_id_fk
-    REFERENCES phrases,
-  is_answer_right BOOLEAN   NOT NULL,
-  date            TIMESTAMP NOT NULL
-);
+create unique index if not exists answer_client_login_uindex
+	on answer (client_login);
 
+create unique index if not exists answer_id_uindex
+	on answer (id);
