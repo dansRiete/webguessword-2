@@ -7,15 +7,15 @@ spring:
 
 postgres.datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://localhost:5433/postgres
-    username: postgres
-    password: postgres
+    jdbc-url: jdbc:postgresql://localhost:5432/guessword
+    username: alex
+    password: vlenaf13
 
 mysql.datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    jdbc-url: jdbc:mysql://localhost:32768/guessword
-    username: root
-    password: mysql
+    jdbc-url: jdbc:mysql://localhost:3306/guessword
+    username: alex
+    password: vlenaf13
 
 server:
   servlet:
