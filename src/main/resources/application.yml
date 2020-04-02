@@ -1,13 +1,16 @@
 spring:
   application:
     name: guessword-2
-  liquibase:
-    liquibase-schema: liquibase_schema
-    change-log: classpath:db/changelog.xml
+#  liquibase:
+#    liquibase-schema: liquibase
+#    change-log: classpath:db/changelog.xml
+  jpa:
+    hibernate:
+      ddl-auto: validate
 
 postgres.datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://localhost:5432/guessword
+    jdbc-url: jdbc:postgresql://localhost:5432/web_guessword
     username: alex
     password: vlenaf13
 

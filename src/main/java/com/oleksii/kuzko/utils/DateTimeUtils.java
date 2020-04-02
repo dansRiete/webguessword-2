@@ -1,4 +1,4 @@
-package com.oleksii.kuzko.dao;
+package com.oleksii.kuzko.utils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
