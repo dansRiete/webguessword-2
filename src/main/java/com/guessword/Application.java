@@ -1,4 +1,4 @@
-package com.oleksii.kuzko;
+package com.guessword;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

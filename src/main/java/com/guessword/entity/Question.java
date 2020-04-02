@@ -1,4 +1,4 @@
-package com.oleksii.kuzko.entity;
+package com.guessword.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

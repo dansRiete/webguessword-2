@@ -1,8 +1,8 @@
-package com.oleksii.kuzko.controller;
+package com.guessword.controller;
 
-import com.oleksii.kuzko.dao.QuestionRepository;
-import com.oleksii.kuzko.entity.Question;
-import com.oleksii.kuzko.service.QuestionService;
+import com.guessword.service.QuestionService;
+import com.guessword.dao.QuestionRepository;
+import com.guessword.entity.Question;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

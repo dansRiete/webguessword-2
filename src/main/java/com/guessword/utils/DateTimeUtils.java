@@ -1,4 +1,4 @@
-package com.oleksii.kuzko.utils;
+package com.guessword.utils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;

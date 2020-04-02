@@ -1,4 +1,4 @@
-package com.oleksii.kuzko.entity;
+package com.guessword.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

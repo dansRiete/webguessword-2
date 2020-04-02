@@ -1,8 +1,8 @@
-package com.oleksii.kuzko.service;
+package com.guessword.service;
 
-import com.oleksii.kuzko.dao.QuestionDao;
-import com.oleksii.kuzko.dao.QuestionRepository;
-import com.oleksii.kuzko.entity.Question;
+import com.guessword.dao.QuestionDao;
+import com.guessword.dao.QuestionRepository;
+import com.guessword.entity.Question;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

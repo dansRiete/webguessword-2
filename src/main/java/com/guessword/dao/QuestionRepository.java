@@ -1,6 +1,6 @@
-package com.oleksii.kuzko.dao;
+package com.guessword.dao;
 
-import com.oleksii.kuzko.entity.Question;
+import com.guessword.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

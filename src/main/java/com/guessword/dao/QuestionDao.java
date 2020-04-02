@@ -1,9 +1,9 @@
-package com.oleksii.kuzko.dao;
+package com.guessword.dao;
 
-import com.oleksii.kuzko.entity.Question;
-import com.oleksii.kuzko.entity.User;
-import com.oleksii.kuzko.entity.Word;
-import com.oleksii.kuzko.utils.DateTimeUtils;
+import com.guessword.entity.Word;
+import com.guessword.entity.Question;
+import com.guessword.entity.User;
+import com.guessword.utils.DateTimeUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
