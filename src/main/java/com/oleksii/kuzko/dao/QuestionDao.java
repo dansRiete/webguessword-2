@@ -1,8 +1,9 @@
 package com.oleksii.kuzko.dao;
 
-import com.oleksii.kuzko.model.Question;
-import com.oleksii.kuzko.model.User;
-import com.oleksii.kuzko.model.Word;
+import com.oleksii.kuzko.entity.Question;
+import com.oleksii.kuzko.entity.User;
+import com.oleksii.kuzko.entity.Word;
+import com.oleksii.kuzko.utils.DateTimeUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -16,11 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -28,7 +25,6 @@ import javax.sql.DataSource;
 @Repository
 public class QuestionDao {
 
-    private final static PostgreSqlPhraseMapper POSTGRESQL_PHRASE_MAPPER = new PostgreSqlPhraseMapper();
     private final static Logger LOGGER = Logger.getLogger(QuestionDao.class);
 
     private final static String SELECT_ALL_POSTGRES =
@@ -92,13 +88,13 @@ public class QuestionDao {
         mapSqlParameterSource.addValue("id", questionToCreate.getId());
         mapSqlParameterSource.addValue("user_login", "alex");
         mapSqlParameterSource.addValue("is_active", true);
-        mapSqlParameterSource
-                .addValue("creation_date", Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+        /*mapSqlParameterSource
+                .addValue("creation_date", Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));*/
         mapSqlParameterSource.addValue("language_1", /*todo languages*/"en");
         mapSqlParameterSource.addValue("language_2", /*todo languages*/"ru");
         mapSqlParameterSource.addValue("probability_factor", questionToCreate.getProbabilityFactor());
         mapSqlParameterSource.addValue("probability_multiplier", questionToCreate.getProbabilityMultiplier());
-        mapSqlParameterSource.addValue("last_access_date", questionToCreate.getLastAccessDate());
+        mapSqlParameterSource.addValue("last_access_date", questionToCreate.getLastAccessed());
         mapSqlParameterSource.addValue("label", questionToCreate.getTag());
 
         postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_SQL, mapSqlParameterSource);
@@ -126,8 +122,8 @@ public class QuestionDao {
             mapSqlParameterSource.addValue("phrase_id", questionToCreate.getId());
             mapSqlParameterSource.addValue("word_id", currentWordId);
             mapSqlParameterSource.addValue("is_active", true);
-            mapSqlParameterSource.addValue("addition_date",
-                    Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));
+            /*mapSqlParameterSource.addValue("addition_date",
+                    Timestamp.from(questionToCreate.getCreationDate().toInstant(ZoneOffset.UTC)));*/
             postgresNamedParameterJdbcTemplate.update(INSERT_PHRASE_WORD_SQL, mapSqlParameterSource);
         }
 
@@ -135,65 +131,8 @@ public class QuestionDao {
         return questionToCreate;
     }
 
-    public List<Question> getAll() {
-        return postgresNamedParameterJdbcTemplate
-                .query(SELECT_ALL_POSTGRES, POSTGRESQL_PHRASE_MAPPER);
-    }
-
     public List<Question> getAllMysql() {
         return mysqlNamedParameterJdbcTemplate.query(SELECT_ALL_MYSQL, new MysqlPhraseMapper(false));
-    }
-
-    private final static class PostgreSqlPhraseMapper implements ResultSetExtractor<List<Question>> {
-
-        @Override
-        public List<Question> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            List<Question> questions = new ArrayList<>();
-            Question question = null;
-            String phraseId = null;
-            List<Word> words = new ArrayList<>();
-            while (rs.next()) {
-                String currentPhraseId = rs.getString("phrase_id");
-                if (question != null && !currentPhraseId.equals(phraseId)) {
-                    questions.add(question);
-                    words = new ArrayList<>();
-                }
-                words.add(
-                        new Word(
-                                rs.getString("word_id"),
-                                rs.getString("word"),
-                                rs.getString("word_language_code"),
-                                rs.getString("transcription"),
-                                LocalDateTime.ofInstant(
-                                        Instant.ofEpochMilli(rs.getTimestamp("word_addition_date").getTime()),
-                                        ZoneId.of("UTC")
-                                )
-                        )
-                );
-                question = new Question(
-                        rs.getString("phrase_id"),
-                        LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(rs.getTimestamp("creation_date").getTime()),
-                                ZoneId.of("UTC")
-                        ),
-                        rs.getDouble("probability_factor"),
-                        rs.getDouble("probability_multiplier"),
-                        rs.getString("label"),
-                        rs.getString("user_login"),
-                        null,
-                        Collections.unmodifiableList(words),
-                        rs.getTimestamp("last_access_date") == null ? null : LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(rs.getTimestamp("last_access_date").getTime()), ZoneId.of("UTC")
-                        )
-                );
-                if (rs.isLast()) {
-                    questions.add(question);
-                }
-                phraseId = currentPhraseId;
-
-            }
-            return questions;
-        }
     }
 
     private final static class MysqlPhraseMapper implements ResultSetExtractor<List<Question>> {
@@ -234,20 +173,21 @@ public class QuestionDao {
                         continue;
                     }
                     for (int i = 0; i < forWords.length; i++) {
-                        Word foreignWord = new Word(null, forWords[i], "en", transcription, null);
-                        Word nativeWord = new Word(null, natWords[i], "ru", null, null);
+                        Word foreignWord =
+                            Word.builder().word(forWords[i]).language("en").transcription(transcription).build();
+                        Word nativeWord = Word.builder().word(natWords[i]).language("ru").build();
                         List<Word> words = Collections.unmodifiableList(Arrays.asList(foreignWord, nativeWord));
+
                         questions.add(
-                                new Question(
-                                        UUID.randomUUID().toString(),
-                                        DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
-                                        probabilityFactor,
-                                        probabilityMultiplier,
-                                        label,
-                                        user.getLogin(), includeUser ? user : null,
-                                        words,
-                                        lastAccessDate
-                                )
+                            Question.builder()
+                                .id(rs.getInt("id"))
+                                .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
+                                .probabilityFactor(probabilityFactor)
+                                .probabilityMultiplier(probabilityMultiplier)
+                                .lastAccessed(lastAccessDate)
+                                .tag(label)
+                                .words(Collections.unmodifiableList(words))
+                                .build()
                         );
                     }
 
@@ -257,33 +197,33 @@ public class QuestionDao {
 
                     if (forWord.contains("/")) {
                         List<Word> engWords = Arrays.stream(forWord.split("/"))
-                                .map(wordLiteral -> new Word(null, wordLiteral, "en", transcription, null))
+                                .map(wordLiteral -> Word.builder().word(wordLiteral).language("en").transcription(transcription).build())
                                 .collect(Collectors.toList());
                         words.addAll(engWords);
                     } else {
-                        words.add(new Word(null, forWord, "en", transcription, null));
+                        words.add(Word.builder().word(forWord).language("en").transcription(transcription).build());
                     }
 
                     if (natWord.contains("/")) {
                         List<Word> natWords = Arrays.stream(natWord.split("/"))
-                                .map(wordLiteral -> new Word(null, wordLiteral, "ru", null, null))
+                                .map(wordLiteral -> new Word(null, wordLiteral, "ru", null))
                                 .collect(Collectors.toList());
                         words.addAll(natWords);
                     } else {
-                        words.add(new Word(null, natWord, "ru", null, null));
+                        words.add(new Word(null, natWord, "ru", null));
                     }
 
-                    questions.add(new Question(
-                            UUID.randomUUID().toString(),
-                            DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")),
-                            probabilityFactor,
-                            probabilityMultiplier,
-                            label,
-                            user.getLogin(),
-                            includeUser ? user : null,
-                            Collections.unmodifiableList(words),
-                            lastAccessDate
-                    ));
+                    questions.add(
+                        Question.builder()
+                            .id(rs.getInt("id"))
+                            .probabilityFactor(probabilityFactor)
+                            .probabilityMultiplier(probabilityMultiplier)
+                            .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
+                            .lastAccessed(lastAccessDate)
+                            .tag(label)
+                            .words(Collections.unmodifiableList(words))
+                            .build()
+                    );
                 }
 
             }
