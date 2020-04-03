@@ -1,5 +1,7 @@
 package com.guessword.controller;
 
+import com.guessword.dto.QuestionDto;
+import com.guessword.dto.mapper.QuestionMapper;
 import com.guessword.service.QuestionService;
 import com.guessword.dao.QuestionRepository;
 import com.guessword.entity.Question;
@@ -18,18 +20,21 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final QuestionRepository questionRepository;
+    private final QuestionMapper questionMapper;
 
     public QuestionController(
-        QuestionService questionService,
-        QuestionRepository questionRepository
+        final QuestionService questionService,
+        final QuestionRepository questionRepository,
+        final QuestionMapper questionMapper
     ) {
         this.questionService = questionService;
         this.questionRepository = questionRepository;
+        this.questionMapper = questionMapper;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Question> getRandom() {
-        Question foundQuestion = questionService.getRandom();
+    public ResponseEntity<QuestionDto> getRandom() {
+        QuestionDto foundQuestion = questionService.getRandom();
         if (foundQuestion == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -38,20 +43,21 @@ public class QuestionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Question>> findAll() {
-        return ResponseEntity.of(Optional.of(questionRepository.findAll()));
+    public ResponseEntity<List<QuestionDto>> findAll() {
+        final List<Question> allQuestions = questionRepository.findAll();
+        final List<QuestionDto> allQuestionDtos = questionMapper.toDto(allQuestions);
+        return ResponseEntity.of(Optional.of(allQuestionDtos));
     }
 
-    @GetMapping(value = "/allMysql", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Question>> getAllMysql() {
-        final List<Question> allMysqlQuestions = questionService.findAllMysql();
+    @GetMapping(value = "/mysql", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<QuestionDto>> findAllMysql() {
+        final List<QuestionDto> allMysqlQuestions = questionService.findAllMysql();
         return ResponseEntity.ok(allMysqlQuestions);
     }
 
-    @GetMapping(value = "/copy", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/copyFromMysql", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Boolean> copy() {
-        final List<Question> allMysqlQuestions = questionService.findAllMysql();
-        return ResponseEntity.ok(questionService.copyAll(allMysqlQuestions));
+        return ResponseEntity.ok(questionService.copyAll());
     }
 
 }

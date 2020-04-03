@@ -1,9 +1,11 @@
 package com.guessword.dao;
 
+import com.guessword.entity.Question.QuestionBuilder;
 import com.guessword.entity.Word;
 import com.guessword.entity.Question;
 import com.guessword.entity.User;
 import com.guessword.utils.DateTimeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -54,7 +56,7 @@ public class QuestionDao {
 
     private final static String SELECT_ALL_MYSQL =
             "SELECT * FROM guessword.words INNER JOIN guessword.users " +
-                    "ON user_id = guessword.users.id";
+                    "ON user_id = guessword.users.login WHERE user_id = 'aleks'";
 
     private final static String INSERT_PHRASE_SQL = "INSERT INTO phrases VALUES\n"
             + "  (:id, :user_login, :is_active, :creation_date, :language_1, :language_2,\n"
@@ -147,7 +149,9 @@ public class QuestionDao {
         public List<Question> extractData(ResultSet rs) throws SQLException, DataAccessException {
 
             List<Question> questions = new ArrayList<>();
+            int rsCounter = 0;
             while (rs.next()) {
+                rsCounter++;
 
                 final String forWord = rs.getString("for_word");
                 final String natWord = rs.getString("nat_word");
@@ -165,6 +169,14 @@ public class QuestionDao {
 
                 if (forWord.contains("/") && natWord.contains("/")) {
 
+                    final Question question = Question.builder()
+                        .id(rs.getInt("id"))
+                        .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
+                        .probabilityFactor(probabilityFactor)
+                        .probabilityMultiplier(probabilityMultiplier)
+                        .lastAccessed(lastAccessDate)
+                        .tag(label).build();
+
                     final String[] forWords = forWord.split("/");
                     final String[] natWords = natWord.split("/");
                     if (forWords.length != natWords.length) {
@@ -173,60 +185,65 @@ public class QuestionDao {
                         continue;
                     }
                     for (int i = 0; i < forWords.length; i++) {
-                        Word foreignWord =
-                            Word.builder().word(forWords[i]).language("en").transcription(transcription).build();
-                        Word nativeWord = Word.builder().word(natWords[i]).language("ru").build();
+                        Word foreignWord = Word.builder()
+                            .word(forWords[i])
+                            .language("en")
+                            .transcription(StringUtils.isEmpty(transcription) ? null : transcription)
+                            .question(question)
+                            .build();
+
+                        Word nativeWord = Word.builder().question(question).word(natWords[i]).language("ru").build();
                         List<Word> words = Collections.unmodifiableList(Arrays.asList(foreignWord, nativeWord));
 
-                        questions.add(
-                            Question.builder()
-                                .id(rs.getInt("id"))
-                                .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
-                                .probabilityFactor(probabilityFactor)
-                                .probabilityMultiplier(probabilityMultiplier)
-                                .lastAccessed(lastAccessDate)
-                                .tag(label)
-                                .words(Collections.unmodifiableList(words))
-                                .build()
-                        );
+                        question.setWords(Collections.unmodifiableList(words));
+                        questions.add(question);
                     }
 
                 } else {
 
                     List<Word> words = new ArrayList<>();
 
+                    final Question question = Question.builder()
+                        .id(rs.getInt("id"))
+                        .probabilityFactor(probabilityFactor)
+                        .probabilityMultiplier(probabilityMultiplier)
+                        .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
+                        .lastAccessed(lastAccessDate)
+                        .tag(label)
+                        .words(Collections.unmodifiableList(words))
+                        .build();
+
                     if (forWord.contains("/")) {
                         List<Word> engWords = Arrays.stream(forWord.split("/"))
-                                .map(wordLiteral -> Word.builder().word(wordLiteral).language("en").transcription(transcription).build())
+                                .map(wordLiteral -> Word.builder()
+                                    .word(wordLiteral)
+                                    .language("en")
+                                    .question(question)
+                                    .transcription(StringUtils.isEmpty(transcription) ? null : transcription)
+                                    .build())
                                 .collect(Collectors.toList());
                         words.addAll(engWords);
                     } else {
-                        words.add(Word.builder().word(forWord).language("en").transcription(transcription).build());
+                        words.add(Word.builder().word(forWord).language("en").question(question)
+                            .transcription(StringUtils.isEmpty(transcription) ? null : transcription).build());
                     }
 
                     if (natWord.contains("/")) {
                         List<Word> natWords = Arrays.stream(natWord.split("/"))
-                                .map(wordLiteral -> new Word(null, wordLiteral, "ru", null))
+                                .map(wordLiteral -> new Word(null, wordLiteral, "ru", null, question))
                                 .collect(Collectors.toList());
                         words.addAll(natWords);
                     } else {
-                        words.add(new Word(null, natWord, "ru", null));
+                        words.add(new Word(null, natWord, "ru", null, question));
                     }
 
-                    questions.add(
-                        Question.builder()
-                            .id(rs.getInt("id"))
-                            .probabilityFactor(probabilityFactor)
-                            .probabilityMultiplier(probabilityMultiplier)
-                            .created(DateTimeUtils.toLocalDateTime(rs.getTimestamp("create_date")))
-                            .lastAccessed(lastAccessDate)
-                            .tag(label)
-                            .words(Collections.unmodifiableList(words))
-                            .build()
-                    );
+                    questions.add(question);
                 }
 
             }
+
+            LOGGER.debug(String.format("Extraction completed. RsCount: %d", rsCounter));
+
             return questions;
         }
     }

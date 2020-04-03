@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Primary;
 import javax.sql.DataSource;
 
 @SpringBootApplication
-public class Application {
+public class GuesswordApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(GuesswordApplication.class, args);
     }
 
     @Bean(name = "mysqlDatasource")

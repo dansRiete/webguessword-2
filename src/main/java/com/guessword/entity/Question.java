@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
 @Getter
@@ -23,6 +25,7 @@ import javax.persistence.OneToMany;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @Entity
 public class Question {
 
@@ -44,13 +47,6 @@ public class Question {
     private String tag;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "question_id")
     private List<Word> words;
-
-    @Override
-    public String toString() {
-        final String s = "Question{"
-            + words.stream().map(Word::getWord).collect(Collectors.joining(",")) + "}"
-            + ", prob=" + ((int) probabilityFactor.doubleValue());
-        return s;
-    }
 }
