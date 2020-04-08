@@ -1,7 +1,7 @@
 package com.guessword.dto.mapper;
 
 import com.guessword.dto.WordDto;
-import com.guessword.entity.Word;
+import com.guessword.domain.entity.Word;
 import org.mapstruct.Mapper;
 
 @Mapper

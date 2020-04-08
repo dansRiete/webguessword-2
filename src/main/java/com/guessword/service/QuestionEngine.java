@@ -1,124 +1,106 @@
 package com.guessword.service;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.guessword.dao.QuestionRepository;
-import com.guessword.entity.Question;
+import com.guessword.domain.entity.Question;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class QuestionEngine {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuestionEngine.class);
     private static final double CHANCE_OF_APPEARING_TRAINED_PHRASES = 1D / 35D;
+    private static final double POWER = 1.25;
+    private static final int MAX_RANGE = 1_000_000;
 
     private final QuestionRepository questionRepository;
+    private final Map<Integer, QuestionLikelihood> randomizer = new HashMap<>();
 
     private Map<Integer, Question> questionMap;
-    private int activePhrasesNumber;
-    private int activeUntrainedPhrasesNumber;
-    private int activeTrainedPhrasesNumber;
-    private int greatestPhrasesIndex;
-    private HashSet<String> selectedLabels;
 
     public QuestionEngine(final QuestionRepository QuestionRepository) {
         this.questionRepository = QuestionRepository;
     }
 
     @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void init() {
-        questionMap =  questionRepository.findAll().stream().collect(
-            Collectors.toMap(Question::getId, question -> question)
+        long startTime = System.currentTimeMillis();
+        questionMap = questionRepository.findAll().stream().collect(
+            Collectors.toMap(Question::getId, Function.identity())
         );
-        reloadIndices();
+        recalculateRandomizer(POWER);
+        LOGGER.info(String.format("QuestionEngine has been initialized. Questions size: %d. Time: %d ms.",
+            questionMap.values().size(), System.currentTimeMillis() - startTime)
+        );
     }
 
-    public void reloadIndices() {
-        System.out.println("reloadIndices() from PhraseRepository");
+    private void recalculateRandomizer(double power) {
 
-        /*if(availablePhrases.isEmpty()){
-            throw new RuntimeException("Active Phrases list was empty. Reload indices impossible");
-        }*/
-
-        final long RANGE = 1_000_000_000;
         long startTime = System.currentTimeMillis();
-        double temp = 0;
-        double indexOfTrained;      //  Index of appearing learnt words
-        double rangeOfUnTrained;    //  Range indices non learnt words
-        double scaleOfOneProb;
-        int modificatePhrasesIndicesNumber = 0;
-        int untrainedPhrasesProbabilityFactorsSumm = 0;
-        this.activePhrasesNumber = 0;
-        this.activeUntrainedPhrasesNumber = 0;
+
+        randomizer.clear();
+        double poweredProbFactorSum = 0;
 
         for (Question question : questionMap.values()) {
-            question.setIndexStart(0);
-            question.setIndexEnd(0);
-            if (question.isInList(selectedLabels)) {
-                this.activePhrasesNumber++;
-                if (question.getProbabilityFactor() > 3) {
-                    this.activeUntrainedPhrasesNumber++;
-                    untrainedPhrasesProbabilityFactorsSumm += question.getProbabilityFactor();
-                }
+            if (question.getProbabilityFactor() <= 3) {
+                continue;
             }
+            double shiftedProbF;
+            QuestionLikelihood questionLikelihood =
+                new QuestionLikelihood(
+                    question.getId(),
+                    question.getProbabilityFactor(),
+                    shiftedProbF = Math.pow(question.getProbabilityFactor(), power),
+                    -1,
+                    -1,
+                    -1,
+                    -1
+                );
+            randomizer.put(questionLikelihood.getId(), questionLikelihood);
+            poweredProbFactorSum += shiftedProbF;
         }
 
-        this.activeTrainedPhrasesNumber = activePhrasesNumber - activeUntrainedPhrasesNumber;
-        indexOfTrained = CHANCE_OF_APPEARING_TRAINED_PHRASES / activeTrainedPhrasesNumber;
-        rangeOfUnTrained = activeTrainedPhrasesNumber > 0 ? 1 - CHANCE_OF_APPEARING_TRAINED_PHRASES : 1;
-        scaleOfOneProb = rangeOfUnTrained / untrainedPhrasesProbabilityFactorsSumm;
-
-        for (Question question : questionMap.values()) { //Sets indices for nonlearnt words
-            if (question.isInList(this.selectedLabels)) {
-                int indexStart;
-                int indexEnd;
-                double prob;
-                prob = question.getProbabilityFactor();
-
-                //If activeUntrainedPhrasesNumber == 0 then all words have been learnt, setting equal for all indices
-                if (activeUntrainedPhrasesNumber == 0) {
-
-                    indexStart = (int) (temp * RANGE);
-                    question.setIndexStart(indexStart);
-                    temp += CHANCE_OF_APPEARING_TRAINED_PHRASES / activeTrainedPhrasesNumber;
-                    indexEnd = (int) ((temp * RANGE) - 1);
-                    question.setIndexEnd(indexEnd);
-
-                } else { //Otherwise, set indices by algorithm
-
-                    if (prob > 3) {
-
-                        indexStart = (int) (temp * RANGE);
-                        question.setIndexStart(indexStart);
-                        temp += scaleOfOneProb * prob;
-                        indexEnd = (int) ((temp * RANGE) - 1);
-                        question.setIndexEnd(indexEnd);
-
-                    } else {
-
-                        indexStart = (int) (temp * RANGE);
-                        question.setIndexStart(indexStart);
-                        temp += indexOfTrained;
-                        indexEnd = (int) ((temp * RANGE) - 1);
-                        question.setIndexEnd(indexEnd);
-                    }
-                }
-
-                modificatePhrasesIndicesNumber++;
-                if (modificatePhrasesIndicesNumber == activePhrasesNumber) {
-                    this.greatestPhrasesIndex = question.getIndexEnd();
-                }
+        long index = -1;
+        for (QuestionLikelihood question : randomizer.values()) {
+            if (question.getProbabilityFactor() <= 3) {
+                continue;
             }
+            question.setPercentage(question.getPoweredProbabilityFactor() / poweredProbFactorSum);
+            question.setRange(Math.round(MAX_RANGE * question.getPercentage()));
+            question.setIndexStart(++index);
+            question.setIndexEnd(index = index + question.getRange() - 1);
         }
 
-        LOGGER.info(String.format("Indices reloaded. Size: %d, time: %d ms", modificatePhrasesIndicesNumber,
-            System.currentTimeMillis() - startTime));
+        LOGGER.info(String.format("Randomizer has been recalculated. Questions size: %d. Time: %d ms.",
+            questionMap.values().size(), System.currentTimeMillis() - startTime));
     }
 
+    @Getter
+    @Setter
+    @ToString
+    @AllArgsConstructor
+    private static class QuestionLikelihood {
+
+        int id;
+        double probabilityFactor;
+        double poweredProbabilityFactor;
+        double percentage;
+        long range;
+        long indexStart = -1;
+        long indexEnd = -1;
+    }
 }

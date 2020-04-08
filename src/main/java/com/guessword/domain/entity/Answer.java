@@ -1,4 +1,4 @@
-package com.guessword.entity;
+package com.guessword.domain.entity;
 
 import java.time.LocalDateTime;
 

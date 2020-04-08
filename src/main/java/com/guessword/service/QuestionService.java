@@ -4,7 +4,7 @@ import com.guessword.dao.QuestionDao;
 import com.guessword.dao.QuestionRepository;
 import com.guessword.dto.QuestionDto;
 import com.guessword.dto.mapper.QuestionMapper;
-import com.guessword.entity.Question;
+import com.guessword.domain.entity.Question;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

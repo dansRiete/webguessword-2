@@ -1,9 +1,8 @@
 package com.guessword.dao;
 
-import com.guessword.entity.Question.QuestionBuilder;
-import com.guessword.entity.Word;
-import com.guessword.entity.Question;
-import com.guessword.entity.User;
+import com.guessword.domain.entity.Word;
+import com.guessword.domain.entity.Question;
+import com.guessword.domain.entity.User;
 import com.guessword.utils.DateTimeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;

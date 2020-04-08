@@ -4,7 +4,7 @@ import com.guessword.dto.QuestionDto;
 import com.guessword.dto.mapper.QuestionMapper;
 import com.guessword.service.QuestionService;
 import com.guessword.dao.QuestionRepository;
-import com.guessword.entity.Question;
+import com.guessword.domain.entity.Question;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
