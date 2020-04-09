@@ -9,5 +9,6 @@ import org.mapstruct.Mapper;
 @Mapper(uses = WordMapper.class)
 public interface QuestionMapper {
     QuestionDto toDto(Question question);
+    Question toEntity(QuestionDto questionDto);
     List<QuestionDto> toDto(List<Question> questions);
 }

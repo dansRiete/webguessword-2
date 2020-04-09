@@ -55,7 +55,7 @@ public class QuestionDao {
 
     private final static String SELECT_ALL_MYSQL =
             "SELECT * FROM guessword.words INNER JOIN guessword.users " +
-                    "ON user_id = guessword.users.login WHERE user_id = 'aleks'";
+                    "ON user_id = guessword.users.login WHERE user_id != 'aleks'";
 
     private final static String INSERT_PHRASE_SQL = "INSERT INTO phrases VALUES\n"
             + "  (:id, :user_login, :is_active, :creation_date, :language_1, :language_2,\n"
