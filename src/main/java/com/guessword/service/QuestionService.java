@@ -12,6 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Contains all the logic for randomizing questions, ensuring the calculation of the probability of asking questions
+ * depending on external conditions such as: the number of questions already studied and not studied, the category of
+ * currently selected questions and others ...
+ * @author Oleksii Kuzko. 9 April 2020.
+ */
 @Service
 public class QuestionService {
 
@@ -38,9 +44,8 @@ public class QuestionService {
     public List<QuestionDto> findAllMysql() {
         long startTime = System.currentTimeMillis();
         final List<Question> allMysqlQuestions = questionDao.getAllMysql();
-        LOGGER.info(
-            String.format("Fetched all from MySQL. Time: %d ms. Found: %d",
-                System.currentTimeMillis() - startTime, allMysqlQuestions.size()));
+        LOGGER.info("Fetched all from MySQL. Time: {} ms. Found: {}",
+            System.currentTimeMillis() - startTime, allMysqlQuestions.size());
         return questionMapper.toDto(allMysqlQuestions);
     }
 
@@ -49,9 +54,8 @@ public class QuestionService {
         long startTime = System.currentTimeMillis();
         List<Question> questions = questionDao.getAllMysql();
         questionRepository.saveAll(questions);
-        LOGGER.info(
-            String.format("Copied all question from MySQL. Time: %d ms. Size: %d",
-                System.currentTimeMillis() - startTime, questions.size()));
+        LOGGER.info("Copied all question from MySQL. Time: {} ms. Size: {}",
+                System.currentTimeMillis() - startTime, questions.size());
         return true;
     }
 }
