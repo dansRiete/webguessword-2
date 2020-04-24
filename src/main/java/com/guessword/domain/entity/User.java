@@ -17,7 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "principal")
+@Table(schema = "security", name = "principal")
 public class User {
 
     @Id

@@ -87,7 +87,7 @@ public class QuestionService {
             Collectors.toMap(Question::getId, Function.identity())
         );
         recalculateRandomizer(POWER);
-        LOGGER.info(String.format("QuestionEngine has been initialized. Questions size: %d. Time: %d ms.",
+        LOGGER.info(String.format("QuestionEngine has been initialized. Questions size: %d - Time: %d ms.",
             questionMap.values().size(), System.currentTimeMillis() - startTime)
         );
     }
@@ -133,7 +133,7 @@ public class QuestionService {
         if(index < MAX_RANGE * ALLOWABLE_INDEX_ERROR_FACTOR) {
             LOGGER.warn("Questions' indexes recalculating with fault. End index was: {}", index);
         }
-        LOGGER.info("Questions' indexes has been recalculated. Non learned questions size: {}. Learned questions size:"
+        LOGGER.debug("Questions' indexes has been recalculated. Non learned questions size: {}. Learned questions size:"
                 + " {}. Time: {} ms. Index end: {}",
             questionMap.values().size(),
             learnedQuestions.values().size(),
@@ -164,29 +164,60 @@ public class QuestionService {
         if(question == null) {
             throw new RuntimeException("No question was found");
         }
+        LOGGER.debug(
+                String.format(
+                        "Retrieved a random question %d %s probFactor = %#.1f",
+                        question.getId(),
+                        question.getWords(),
+                        question.getProbabilityFactor()
+                )
+        );
         return questionMapper.toDto(question);
     }
 
     public QuestionDto rightAnswer(QuestionDto answeredQuestionDto) {
         Question answeredQuestion = questionMap.get(answeredQuestionDto.getId());
         questionToRollback = answeredQuestion.toBuilder().build();
-        answeredQuestion.setProbabilityFactor(
-            answeredQuestion.getProbabilityFactor() - 3 * answeredQuestion.getProbabilityMultiplier()
-        );
+        Double previousProbabilityFactor = answeredQuestion.getProbabilityFactor();
+        Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
+        answeredQuestion.setProbabilityFactor(previousProbabilityFactor - 3 * previousProbabilityMultiplier);
         answeredQuestion.setProbabilityMultiplier(
-            answeredQuestion.getProbabilityMultiplier() == 1.0 ? 1.2 :
-            Math.pow(answeredQuestion.getProbabilityMultiplier(), 2)
+                previousProbabilityMultiplier == 1.0 ? 1.2 : Math.pow(previousProbabilityMultiplier, 2)
         );
         recalculateRandomizer(POWER);
+        LOGGER.info(
+                String.format(
+                        "Right answered the question %d %s probFactor: [%#.1f => %#.1f], probMultiplier: [%#.2f => %#.2f]",
+                        answeredQuestion.getId(),
+                        answeredQuestion.getWords(),
+                        previousProbabilityFactor,
+                        answeredQuestion.getProbabilityFactor(),
+                        previousProbabilityMultiplier,
+                        answeredQuestion.getProbabilityMultiplier()
+                )
+        );
         return questionMapper.toDto(questionRepository.saveAndFlush(answeredQuestion));
     }
 
     public QuestionDto wrongAnswer(QuestionDto answeredQuestionDto) {
         Question answeredQuestion = questionMap.get(answeredQuestionDto.getId());
         questionToRollback = answeredQuestion.toBuilder().build();
-        answeredQuestion.setProbabilityFactor(answeredQuestion.getProbabilityFactor() + 6);
+        Double previousProbabilityFactor = answeredQuestion.getProbabilityFactor();
+        Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
+        answeredQuestion.setProbabilityFactor(previousProbabilityFactor + 6);
         answeredQuestion.setProbabilityMultiplier(1.0);
         recalculateRandomizer(POWER);
+        LOGGER.info(
+                String.format(
+                        "Wrong answered the question %d %s probFactor: [%#.1f => %#.1f], probMultiplier: [%#.2f => %#.2f]",
+                        answeredQuestion.getId(),
+                        answeredQuestion.getWords(),
+                        previousProbabilityFactor,
+                        answeredQuestion.getProbabilityFactor(),
+                        previousProbabilityMultiplier,
+                        answeredQuestion.getProbabilityMultiplier()
+                )
+        );
         return questionMapper.toDto(questionRepository.saveAndFlush(answeredQuestion));
     }
 
