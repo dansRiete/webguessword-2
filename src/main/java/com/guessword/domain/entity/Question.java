@@ -21,7 +21,7 @@ import javax.persistence.*;
 @Builder(toBuilder = true)
 @ToString
 @Entity
-@Table(schema = "domain")
+@Table(schema = "main")
 public class Question {
 
     @Id

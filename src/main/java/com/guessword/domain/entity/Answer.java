@@ -16,7 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(schema = "domain")
+@Table(schema = "main")
 public class Answer {
 
     @Id
