@@ -2,13 +2,15 @@ package com.guessword.service;
 
 import com.guessword.dao.QuestionDao;
 import com.guessword.dao.QuestionRepository;
-import com.guessword.dto.QuestionDto;
-import com.guessword.dto.mapper.QuestionMapper;
+import com.guessword.domain.BaseQuestion;
+import com.guessword.domain.dto.QuestionDto;
+import com.guessword.domain.dto.mapper.QuestionMapper;
 import com.guessword.domain.entity.Question;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +96,11 @@ public class QuestionService {
 
     public List<Map<Integer, QuestionLikelihood>> recalculateRandomizer(double power) {
 
+        if (MapUtils.isEmpty(questionMap)) {
+            LOGGER.warn("No questions in database. Recalculation was not performed.");
+            return null;
+        }
+
         long startTime = System.currentTimeMillis();
 
         nonLearnedQuestions.clear();
@@ -162,7 +169,8 @@ public class QuestionService {
         final Question question = questionMap.get(selectedQuestion.getId());
 
         if(question == null) {
-            throw new RuntimeException("No question was found");
+            LOGGER.warn("Could not retrieve next. No question found");
+            return null;
         }
         LOGGER.debug(
                 String.format(
@@ -175,9 +183,11 @@ public class QuestionService {
         return questionMapper.toDto(question);
     }
 
-    public QuestionDto rightAnswer(QuestionDto answeredQuestionDto) {
-        Question answeredQuestion = questionMap.get(answeredQuestionDto.getId());
-        questionToRollback = answeredQuestion.toBuilder().build();
+    public QuestionDto rightAnswer(BaseQuestion answeredQuestionDto, boolean rollback) {
+        Question answeredQuestion = questionMap.get(answeredQuestionDto.getId()).toBuilder().build();
+        if(!rollback) {
+            questionToRollback = answeredQuestion.toBuilder().build();
+        }
         Double previousProbabilityFactor = answeredQuestion.getProbabilityFactor();
         Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
         answeredQuestion.setProbabilityFactor(previousProbabilityFactor - 3 * previousProbabilityMultiplier);
@@ -199,12 +209,17 @@ public class QuestionService {
         return questionMapper.toDto(questionRepository.saveAndFlush(answeredQuestion));
     }
 
-    public QuestionDto wrongAnswer(QuestionDto answeredQuestionDto) {
-        Question answeredQuestion = questionMap.get(answeredQuestionDto.getId());
-        questionToRollback = answeredQuestion.toBuilder().build();
+    public QuestionDto wrongAnswer(BaseQuestion answeredQuestionDto, boolean rollback) {
+        Question answeredQuestion;
+        if(!rollback) {
+            answeredQuestion = questionMap.get(answeredQuestionDto.getId()).toBuilder().build();
+            questionToRollback = answeredQuestion.toBuilder().build();
+        } else {
+            answeredQuestion = questionToRollback.toBuilder().build();
+        }
         Double previousProbabilityFactor = answeredQuestion.getProbabilityFactor();
         Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
-        answeredQuestion.setProbabilityFactor(previousProbabilityFactor + 6);
+        answeredQuestion.setProbabilityFactor(previousProbabilityFactor + (6 * answeredQuestion.getProbabilityMultiplier()));
         answeredQuestion.setProbabilityMultiplier(1.0);
         recalculateRandomizer(POWER);
         LOGGER.info(
@@ -222,9 +237,21 @@ public class QuestionService {
     }
 
     public QuestionDto rollbackLast() {
-        questionMap.put(questionToRollback.getId(), questionToRollback);
+        questionMap.put(questionToRollback.getId(), questionToRollback.toBuilder().build());
         recalculateRandomizer(POWER);
         return questionMapper.toDto(questionRepository.saveAndFlush(questionToRollback));
+    }
+
+    public QuestionDto rollbackLast(boolean howAnswered) {
+        questionMap.put(questionToRollback.getId(), questionToRollback.toBuilder().build());
+        QuestionDto questionDto;
+        if (howAnswered) {
+            questionDto = rightAnswer(questionToRollback, true);
+        } else {
+            questionDto = wrongAnswer(questionToRollback, true);
+        }
+        recalculateRandomizer(POWER);
+        return questionDto;
     }
 
     @Getter

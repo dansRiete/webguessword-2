@@ -1,4 +1,4 @@
-package com.guessword.dto;
+package com.guessword.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

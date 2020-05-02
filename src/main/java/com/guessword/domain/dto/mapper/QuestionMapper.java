@@ -1,8 +1,8 @@
-package com.guessword.dto.mapper;
+package com.guessword.domain.dto.mapper;
 
 import java.util.List;
 
-import com.guessword.dto.QuestionDto;
+import com.guessword.domain.dto.QuestionDto;
 import com.guessword.domain.entity.Question;
 import org.mapstruct.Mapper;
 

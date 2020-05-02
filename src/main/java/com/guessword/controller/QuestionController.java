@@ -1,7 +1,7 @@
 package com.guessword.controller;
 
-import com.guessword.dto.QuestionDto;
-import com.guessword.dto.mapper.QuestionMapper;
+import com.guessword.domain.dto.QuestionDto;
+import com.guessword.domain.dto.mapper.QuestionMapper;
 import com.guessword.service.QuestionService;
 import com.guessword.dao.QuestionRepository;
 import com.guessword.domain.entity.Question;
@@ -49,17 +49,22 @@ public class QuestionController {
 
     @PostMapping(value = "/right")
     public ResponseEntity<QuestionDto> rightAnswer(@RequestBody QuestionDto answeredQuestionDto) {
-        return ResponseEntity.ok(questionService.rightAnswer(answeredQuestionDto));
+        return ResponseEntity.ok(questionService.rightAnswer(answeredQuestionDto, false));
     }
 
     @PostMapping(value = "/wrong")
     public ResponseEntity<QuestionDto> wrongAnswer(@RequestBody QuestionDto answeredQuestionDto) {
-        return ResponseEntity.ok(questionService.wrongAnswer(answeredQuestionDto));
+        return ResponseEntity.ok(questionService.wrongAnswer(answeredQuestionDto, false));
     }
 
-    @PostMapping(value = "/rollback")
-    public ResponseEntity<QuestionDto> rollback() {
-        return ResponseEntity.ok(questionService.rollbackLast());
+    @PostMapping(value = "/rollbackRight")
+    public ResponseEntity<QuestionDto> rollbackRight() {
+        return ResponseEntity.ok(questionService.rollbackLast(true));
+    }
+
+    @PostMapping(value = "/rollbackWrong")
+    public ResponseEntity<QuestionDto> rollbackWrong() {
+        return ResponseEntity.ok(questionService.rollbackLast(false));
     }
 
     @GetMapping

@@ -1,6 +1,7 @@
 package com.guessword.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.guessword.domain.BaseQuestion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ import javax.persistence.*;
 @ToString
 @Entity
 @Table(schema = "main")
-public class Question {
+public class Question implements BaseQuestion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "question_seq")

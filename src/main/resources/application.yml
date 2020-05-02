@@ -7,11 +7,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    database: postgresql
 
 postgres.datasource:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
+    jdbc-url: jdbc:postgresql://localhost:5432/guessword
+    username: alexk
     password: vlenaf13
 
 mysql.datasource:
