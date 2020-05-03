@@ -206,7 +206,9 @@ public class QuestionService {
                         answeredQuestion.getProbabilityMultiplier()
                 )
         );
-        return questionMapper.toDto(questionRepository.saveAndFlush(answeredQuestion));
+        Question updatedQuestion = questionRepository.saveAndFlush(answeredQuestion);
+        questionMap.put(updatedQuestion.getId(), updatedQuestion);
+        return questionMapper.toDto(updatedQuestion);
     }
 
     public QuestionDto wrongAnswer(BaseQuestion answeredQuestionDto, boolean rollback) {
@@ -233,7 +235,9 @@ public class QuestionService {
                         answeredQuestion.getProbabilityMultiplier()
                 )
         );
-        return questionMapper.toDto(questionRepository.saveAndFlush(answeredQuestion));
+        Question updatedQuestion = questionRepository.saveAndFlush(answeredQuestion);
+        questionMap.put(updatedQuestion.getId(), updatedQuestion);
+        return questionMapper.toDto(updatedQuestion);
     }
 
     public QuestionDto rollbackLast() {

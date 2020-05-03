@@ -1,4 +1,4 @@
-create table question
+create table main.question
 (
     id                     integer          not null
         constraint question_pkey
@@ -9,9 +9,6 @@ create table question
     probability_multiplier double precision not null,
     tag                    varchar(255)
 );
-
-alter table question
-    owner to alex;
 
 INSERT INTO main.question (id, created, last_accessed, probability_factor, probability_multiplier, tag) VALUES (1, '2015-10-08 23:10:32.000000', '2016-07-10 12:40:16.000000', 6.21, 1, null);
 INSERT INTO main.question (id, created, last_accessed, probability_factor, probability_multiplier, tag) VALUES (2, '2015-10-08 23:10:32.000000', '2016-12-10 12:11:08.000000', 9.25, 1.21, null);

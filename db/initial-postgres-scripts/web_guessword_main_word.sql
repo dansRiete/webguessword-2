@@ -1,4 +1,4 @@
-create table word
+create table main.word
 (
     id            integer      not null
         constraint word_pkey
@@ -10,9 +10,6 @@ create table word
         constraint fkcy96wjgxmw4rqcft408txuhfd
             references question
 );
-
-alter table word
-    owner to alex;
 
 INSERT INTO main.word (id, language, transcription, word, question_id) VALUES (152, 'en', null, 'some', 70);
 INSERT INTO main.word (id, language, transcription, word, question_id) VALUES (569, 'en', null, 'palm', 271);

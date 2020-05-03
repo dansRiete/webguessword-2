@@ -1,4 +1,4 @@
-create table answer
+create table main.answer
 (
     id          integer   not null
         constraint answer_pkey
@@ -9,7 +9,4 @@ create table answer
         constraint fk8frr4bcabmmeyyu60qt7iiblo
             references question
 );
-
-alter table answer
-    owner to alex;
 
