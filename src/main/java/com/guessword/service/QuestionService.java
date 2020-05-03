@@ -19,6 +19,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -192,7 +193,7 @@ public class QuestionService {
         Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
         answeredQuestion.setProbabilityFactor(previousProbabilityFactor - 3 * previousProbabilityMultiplier);
         answeredQuestion.setProbabilityMultiplier(
-                previousProbabilityMultiplier == 1.0 ? 1.2 : Math.pow(previousProbabilityMultiplier, 2)
+                previousProbabilityMultiplier == 1.0 ? 1.2 : previousProbabilityMultiplier * 1.2
         );
         recalculateRandomizer(POWER);
         LOGGER.info(
@@ -206,6 +207,7 @@ public class QuestionService {
                         answeredQuestion.getProbabilityMultiplier()
                 )
         );
+        answeredQuestion.setLastAccessed(LocalDateTime.now());
         Question updatedQuestion = questionRepository.saveAndFlush(answeredQuestion);
         questionMap.put(updatedQuestion.getId(), updatedQuestion);
         return questionMapper.toDto(updatedQuestion);
@@ -221,7 +223,7 @@ public class QuestionService {
         }
         Double previousProbabilityFactor = answeredQuestion.getProbabilityFactor();
         Double previousProbabilityMultiplier = answeredQuestion.getProbabilityMultiplier();
-        answeredQuestion.setProbabilityFactor(previousProbabilityFactor + (6 * answeredQuestion.getProbabilityMultiplier()));
+        answeredQuestion.setProbabilityFactor(previousProbabilityFactor + 6 * answeredQuestion.getProbabilityMultiplier());
         answeredQuestion.setProbabilityMultiplier(1.0);
         recalculateRandomizer(POWER);
         LOGGER.info(
@@ -235,15 +237,10 @@ public class QuestionService {
                         answeredQuestion.getProbabilityMultiplier()
                 )
         );
+        answeredQuestion.setLastAccessed(LocalDateTime.now());
         Question updatedQuestion = questionRepository.saveAndFlush(answeredQuestion);
         questionMap.put(updatedQuestion.getId(), updatedQuestion);
         return questionMapper.toDto(updatedQuestion);
-    }
-
-    public QuestionDto rollbackLast() {
-        questionMap.put(questionToRollback.getId(), questionToRollback.toBuilder().build());
-        recalculateRandomizer(POWER);
-        return questionMapper.toDto(questionRepository.saveAndFlush(questionToRollback));
     }
 
     public QuestionDto rollbackLast(boolean howAnswered) {
